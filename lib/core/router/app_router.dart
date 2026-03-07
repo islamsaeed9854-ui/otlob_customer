@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 
-import 'navigation_service.dart';
+import '../services/navigation_service.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
 
-@singleton
+@lazySingleton
 class AppRouter {
   final NavigationService _navigationService;
 

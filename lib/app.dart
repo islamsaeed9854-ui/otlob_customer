@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
 
 class OtlobApp extends StatelessWidget {
   const OtlobApp({super.key});
@@ -20,15 +21,9 @@ class OtlobApp extends StatelessWidget {
 
       routerConfig: appRouter.router,
 
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFF5A00),
-          primary: const Color(0xFFFF5A00),
-        ),
-        fontFamily: context.locale.languageCode == 'ar' ? 'Cairo' : 'Roboto',
-        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 0),
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
 
       builder: (context, child) {
         return MediaQuery(

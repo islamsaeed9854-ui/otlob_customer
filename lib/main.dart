@@ -14,7 +14,7 @@ Future<void> main() async {
 
   await EasyLocalization.ensureInitialized();
 
-  configureDependencies();
+  await configureDependencies();
 
   runApp(
     EasyLocalization(
