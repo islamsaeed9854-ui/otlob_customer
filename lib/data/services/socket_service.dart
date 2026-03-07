@@ -40,6 +40,10 @@ class SocketService {
     _socket?.off(eventName);
   }
 
+  void connect() {
+    _socket?.connect();
+  }
+
   void disconnect() {
     _socket?.disconnect();
     _socket?.dispose();
