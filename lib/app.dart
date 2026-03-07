@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'presentation/router/app_router.dart';
+import 'router/app_router.dart';
 
 class OtlobApp extends StatelessWidget {
   const OtlobApp({super.key});
