@@ -1,27 +1,49 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:injectable/injectable.dart';
 
+import 'navigation_service.dart';
+import 'route_paths.dart';
+import 'route_names.dart';
+
 @singleton
 class AppRouter {
-  static const String homePath = '/';
-  static const String loginPath = '/login';
+  final NavigationService _navigationService;
+
+  AppRouter(this._navigationService);
 
   late final GoRouter _router = GoRouter(
-    initialLocation: homePath,
+    navigatorKey: _navigationService.navigatorKey,
+    initialLocation: RoutePaths.splash,
+    debugLogDiagnostics: kDebugMode,
+
     routes: [
       GoRoute(
-        path: homePath,
-        name: 'home',
-        builder: (context, state) => const Scaffold(body: Center(child: Text('Home'))),
+        path: RoutePaths.splash,
+        name: RouteNames.splash,
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
       ),
       GoRoute(
-        path: loginPath,
-        name: 'login',
-        builder: (context, state) => const Scaffold(body: Center(child: Text('Login'))),
+        path: RoutePaths.login,
+        name: RouteNames.login,
+        builder: (context, state) {
+          final redirectTo = state.uri.queryParameters['redirect'];
+          return Scaffold(
+            body: Center(
+              child: Text('Login Screen. Will redirect to: $redirectTo'),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: RoutePaths.home,
+        name: RouteNames.home,
+        builder: (context, state) =>
+            const Scaffold(body: Center(child: Text('Home Screen'))),
       ),
     ],
-    errorBuilder: (context, state) => const Scaffold(body: Center(child: Text('404'))),
   );
 
   GoRouter get router => _router;
