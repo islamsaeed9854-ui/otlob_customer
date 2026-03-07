@@ -13,18 +13,15 @@ class AppRouter {
       GoRoute(
         path: homePath,
         name: 'home',
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: Text('Home'))),
+        builder: (context, state) => const Scaffold(body: Center(child: Text('Home'))),
       ),
       GoRoute(
         path: loginPath,
         name: 'login',
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: Text('Login'))),
+        builder: (context, state) => const Scaffold(body: Center(child: Text('Login'))),
       ),
     ],
-    errorBuilder: (context, state) =>
-        const Scaffold(body: Center(child: Text('404'))),
+    errorBuilder: (context, state) => const Scaffold(body: Center(child: Text('404'))),
   );
 
   GoRouter get router => _router;
