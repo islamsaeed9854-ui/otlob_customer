@@ -1,4 +1,3 @@
-// lib/data/services/location_service.dart
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:injectable/injectable.dart';
