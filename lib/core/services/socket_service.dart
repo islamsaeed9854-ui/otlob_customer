@@ -18,7 +18,7 @@ class SocketService {
       io.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
-          .setQuery({'token': userToken})
+          .setAuth({'token': userToken})
           .build(),
     );
 
