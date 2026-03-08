@@ -15,12 +15,13 @@ class ServerFailure extends Failure {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure({
-    super.message = 'No internet connection',
-    super.code = 'no_internet',
-  });
+  const NetworkFailure({super.message, super.code = 'no_internet'});
 }
 
 class CacheFailure extends Failure {
   const CacheFailure({super.message, super.code = 'cache_error'});
+}
+
+class UnexpectedFailure extends Failure {
+  const UnexpectedFailure({super.message, super.code = 'unexpected_error'});
 }

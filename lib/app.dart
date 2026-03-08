@@ -13,8 +13,12 @@ class OtlobApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => GetIt.I<AppSettingsCubit>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AppSettingsCubit>(
+          create: (context) => GetIt.I<AppSettingsCubit>(),
+        ),
+      ],
       child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
         builder: (context, state) {
           final router = GetIt.I<AppRouter>().router;
