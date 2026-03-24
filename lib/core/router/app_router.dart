@@ -38,6 +38,7 @@ class RouterNotifier extends ChangeNotifier {
     final isGoingToSplash = state.uri.path == RoutePaths.splash;
     final isGoingToLogin = state.uri.path == RoutePaths.login;
     final isGoingToOnboarding = state.uri.path == RoutePaths.onboarding;
+    final isGoingToRegister = state.uri.path == RoutePaths.register;
 
     if (authStatus == AuthStatus.initial) {
       return isGoingToSplash ? null : RoutePaths.splash;
@@ -55,7 +56,10 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (authStatus == AuthStatus.authenticated) {
-      if (isGoingToLogin || isGoingToSplash || isGoingToOnboarding) {
+      if (isGoingToLogin ||
+          isGoingToSplash ||
+          isGoingToOnboarding ||
+          isGoingToRegister) {
         return RoutePaths.home;
       }
     }
