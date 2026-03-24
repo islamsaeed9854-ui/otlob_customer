@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'di/injection.dart';
 import 'app.dart';
 
 Future<void> main() async {
@@ -13,8 +12,6 @@ Future<void> main() async {
   await Firebase.initializeApp();
 
   await EasyLocalization.ensureInitialized();
-
-  await configureDependencies();
 
   runApp(
     EasyLocalization(

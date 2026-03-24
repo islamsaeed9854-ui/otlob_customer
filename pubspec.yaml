@@ -14,12 +14,9 @@ dependencies:
   # -------------------------
   # 🏗 Architecture & State
   # -------------------------
-  flutter_bloc: ^9.1.1
-  equatable: ^2.0.8
+  flutter_riverpod: ^3.3.1
+  riverpod_annotation: ^4.0.2
   formz: ^0.8.0
-  fpdart: ^1.2.0
-  injectable: ^2.7.1+4
-  get_it: ^9.2.1
 
   # -------------------------
   # 🌐 Networking & Realtime
@@ -91,7 +88,7 @@ dev_dependencies:
     sdk: flutter
 
   # -------------------------
-  # 🧹 Lints
+  # 🧹 Lints  
   # -------------------------
   flutter_lints: ^6.0.0
 
@@ -104,8 +101,8 @@ dev_dependencies:
   # -------------------------
   # 🔄 Code Generation
   # -------------------------
-  injectable_generator: ^2.12.0
-  build_runner: ^2.11.1
+  riverpod_generator: ^4.0.3
+  build_runner: ^2.13.1
   json_serializable: ^6.13.0
 
 flutter:
