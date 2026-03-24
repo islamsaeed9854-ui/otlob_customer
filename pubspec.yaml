@@ -16,7 +16,6 @@ dependencies:
   # -------------------------
   flutter_riverpod: ^3.3.1
   riverpod_annotation: ^4.0.2
-  formz: ^0.8.0
 
   # -------------------------
   # 🌐 Networking & Realtime
