@@ -17,19 +17,26 @@ class AuthRemoteDataSource {
 
   Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await _dio.post(
-      '/auth/login', 
+      '/auth/login',
       data: {'email': email, 'password': password},
       options: Options(extra: {'requiresAuth': false}),
     );
     return response.data;
   }
 
-  Future<Map<String, dynamic>> register(String name, String email, String password, String? phone) async {
+  Future<Map<String, dynamic>> register(
+    String name,
+    String email,
+    String password,
+    String? phone,
+  ) async {
     final response = await _dio.post(
       '/auth/register',
       data: {
-        'name': name, 'email': email, 'password': password,
-        if (phone != null) 'phone': phone,
+        'name': name,
+        'email': email,
+        'password': password,
+        'phone': ?phone,
       },
       options: Options(extra: {'requiresAuth': false}),
     );

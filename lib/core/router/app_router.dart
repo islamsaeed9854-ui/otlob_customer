@@ -19,20 +19,20 @@ class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
     _ref.listen<AuthStatus>(
       authControllerProvider,
-      (_, __) => notifyListeners(),
+      (_, _) => notifyListeners(),
     );
-  
+
     _ref.listen<AppSettingsState>(
       appSettingsProvider,
-      (_, __) => notifyListeners(),
+      (_, _) => notifyListeners(),
     );
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authStatus = _ref.read(authControllerProvider);
-    
+
     final hasSeenOnboarding = _ref.read(appSettingsProvider).hasSeenOnboarding;
-    
+
     final isGoingToSplash = state.uri.path == RoutePaths.splash;
     final isGoingToLogin = state.uri.path == RoutePaths.login;
     final isGoingToOnboarding = state.uri.path == RoutePaths.onboarding;
@@ -45,7 +45,7 @@ class RouterNotifier extends ChangeNotifier {
       if (!hasSeenOnboarding) {
         return isGoingToOnboarding ? null : RoutePaths.onboarding;
       }
-      
+
       if (!isGoingToLogin) {
         return '${RoutePaths.login}?redirect=${state.uri.path}';
       }
