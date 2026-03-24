@@ -12,16 +12,23 @@ SharedPreferences sharedPreferences(Ref ref) {
 class AppSettingsState {
   final ThemeMode themeMode;
   final String languageCode;
+  final bool hasSeenOnboarding;
 
   const AppSettingsState({
     this.themeMode = ThemeMode.system,
     this.languageCode = 'en',
+    this.hasSeenOnboarding = false,
   });
 
-  AppSettingsState copyWith({ThemeMode? themeMode, String? languageCode}) {
+  AppSettingsState copyWith({
+    ThemeMode? themeMode, 
+    String? languageCode,
+    bool? hasSeenOnboarding,
+  }) {
     return AppSettingsState(
       themeMode: themeMode ?? this.themeMode,
       languageCode: languageCode ?? this.languageCode,
+      hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
     );
   }
 }
@@ -30,6 +37,7 @@ class AppSettingsState {
 class AppSettings extends _$AppSettings {
   static const String _themeKey = 'theme_mode';
   static const String _langKey = 'language_code';
+  static const String _onboardingKey = 'has_seen_onboarding';
 
   @override
   AppSettingsState build() {
@@ -42,7 +50,13 @@ class AppSettings extends _$AppSettings {
 
     final langCode = prefs.getString(_langKey) ?? 'en';
 
-    return AppSettingsState(themeMode: themeMode, languageCode: langCode);
+    final hasSeenOnboarding = prefs.getBool(_onboardingKey) ?? false;
+
+    return AppSettingsState(
+      themeMode: themeMode, 
+      languageCode: langCode,
+      hasSeenOnboarding: hasSeenOnboarding,
+    );
   }
 
   Future<void> changeTheme(ThemeMode mode) async {
@@ -59,5 +73,12 @@ class AppSettings extends _$AppSettings {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_langKey, langCode);
     state = state.copyWith(languageCode: langCode);
+  }
+
+  Future<void> completeOnboarding() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_onboardingKey, true);
+    
+    state = state.copyWith(hasSeenOnboarding: true);
   }
 }

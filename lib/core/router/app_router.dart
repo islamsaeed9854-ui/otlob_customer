@@ -4,7 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/navigation_service.dart';
-import '../../features/auth/presentation/providers/auth_controller.dart'; // Import Auth Controller
+import '../../features/auth/presentation/providers/auth_controller.dart';
+import '../../features/splash/presentation/pages/splash_screen.dart';
+import '../../features/onboarding/presentation/pages/onboarding_screen.dart';
+import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
 
@@ -18,19 +21,31 @@ class RouterNotifier extends ChangeNotifier {
       authControllerProvider,
       (_, __) => notifyListeners(),
     );
+  
+    _ref.listen<AppSettingsState>(
+      appSettingsProvider,
+      (_, __) => notifyListeners(),
+    );
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authStatus = _ref.read(authControllerProvider);
     
-    final isGoingToLogin = state.uri.path == RoutePaths.login;
+    final hasSeenOnboarding = _ref.read(appSettingsProvider).hasSeenOnboarding;
+    
     final isGoingToSplash = state.uri.path == RoutePaths.splash;
+    final isGoingToLogin = state.uri.path == RoutePaths.login;
+    final isGoingToOnboarding = state.uri.path == RoutePaths.onboarding;
 
     if (authStatus == AuthStatus.initial) {
       return isGoingToSplash ? null : RoutePaths.splash;
     }
 
     if (authStatus == AuthStatus.unauthenticated) {
+      if (!hasSeenOnboarding) {
+        return isGoingToOnboarding ? null : RoutePaths.onboarding;
+      }
+      
       if (!isGoingToLogin) {
         return '${RoutePaths.login}?redirect=${state.uri.path}';
       }
@@ -38,7 +53,7 @@ class RouterNotifier extends ChangeNotifier {
     }
 
     if (authStatus == AuthStatus.authenticated) {
-      if (isGoingToLogin || isGoingToSplash) {
+      if (isGoingToLogin || isGoingToSplash || isGoingToOnboarding) {
         return RoutePaths.home;
       }
     }
@@ -56,16 +71,18 @@ GoRouter appRouter(Ref ref) {
     navigatorKey: navigationService.navigatorKey,
     initialLocation: RoutePaths.splash,
     debugLogDiagnostics: kDebugMode,
-    
     refreshListenable: routerNotifier,
     redirect: routerNotifier.redirect,
-    
     routes: [
       GoRoute(
         path: RoutePaths.splash,
         name: RouteNames.splash,
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.onboarding,
+        name: RouteNames.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
       ),
       GoRoute(
         path: RoutePaths.login,
@@ -73,8 +90,9 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) {
           final redirectTo = state.uri.queryParameters['redirect'];
           return Scaffold(
+            appBar: AppBar(title: const Text('Login')),
             body: Center(
-              child: Text('Login Screen. Will redirect to: $redirectTo'),
+              child: Text('Login UI goes here. Redirect: $redirectTo'),
             ),
           );
         },
