@@ -21,7 +21,7 @@ class OtlobApp extends ConsumerWidget {
 
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
-      locale: context.locale,
+      locale: Locale(appSettings.languageCode),
 
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
