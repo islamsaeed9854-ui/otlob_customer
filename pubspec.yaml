@@ -110,3 +110,20 @@ flutter:
   assets:
     - .env
     - assets/translations/
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/logo.png"
+
+flutter_native_splash:
+  color: "#D4920E"
+  image: "assets/logo_without_background.png"
+  color_dark: "#D4920E"
+  image_dark: "assets/logo_without_background.png"
+  fullscreen: true
+  android: true
+  ios: true

@@ -6,8 +6,8 @@ import 'core/providers/app_settings_provider.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
-class OtlobApp extends ConsumerWidget {
-  const OtlobApp({super.key});
+class App extends ConsumerWidget {
+  const App({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -21,7 +21,7 @@ class OtlobApp extends ConsumerWidget {
 
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
-      locale: Locale(appSettings.languageCode),
+      locale: context.locale,
 
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
