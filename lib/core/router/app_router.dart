@@ -49,7 +49,7 @@ class RouterNotifier extends ChangeNotifier {
         return isGoingToOnboarding ? null : RoutePaths.onboarding;
       }
 
-      if (!isGoingToLogin) {
+      if (!isGoingToRegister && !isGoingToLogin) {
         return '${RoutePaths.login}?redirect=${state.uri.path}';
       }
       return null;
