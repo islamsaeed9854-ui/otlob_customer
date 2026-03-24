@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart'; // Added for routing
 
 import '../providers/login_controller.dart';
+import '../../../../core/router/route_paths.dart'; // Ensure you import your RoutePaths
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -24,7 +26,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      ref.read(loginControllerProvider.notifier).login(
+      ref
+          .read(loginControllerProvider.notifier)
+          .login(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
@@ -35,16 +39,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginControllerProvider);
 
-    ref.listen<AsyncValue<void>>(
-      loginControllerProvider,
-      (previous, next) {
-        if (next.hasError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(next.error.toString()), backgroundColor: Colors.red),
-          );
-        }
-      },
-    );
+    ref.listen<AsyncValue<void>>(loginControllerProvider, (previous, next) {
+      if (next.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error.toString()),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('Welcome Back')),
@@ -60,8 +64,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(
                   'Log in to Otlob',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
@@ -72,7 +76,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: Icon(Icons.email_outlined),
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || !v.contains('@')) ? 'Valid email required' : null,
+                  validator: (v) => (v == null || !v.contains('@'))
+                      ? 'Valid email required'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -83,7 +89,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                  validator: (v) =>
+                      (v == null || v.length < 6) ? 'Min 6 characters' : null,
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
@@ -93,6 +100,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: loginState.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
                         : const Text('Login', style: TextStyle(fontSize: 18)),
+                  ),
+                ),
+                // === ADDED THE SIGN UP BUTTON HERE ===
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => context.push(RoutePaths.register),
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Don't have an account? ",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: "Sign up",
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
