@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 import '../providers/secure_storage_provider.dart';
 
@@ -70,10 +71,24 @@ class TokenService {
     ]);
   }
 
+  Future<bool> isAccessTokenExpired() async {
+    final access = await getAccessToken();
+    
+    if (access == null) return true; 
+
+    return JwtDecoder.isExpired(access);
+  }
+
   Future<bool> hasValidTokens() async {
     final access = await getAccessToken();
     final refresh = await getRefreshToken();
 
-    return access != null && refresh != null;
+    if (access == null || refresh == null) return false;
+
+    if (JwtDecoder.isExpired(refresh)) {
+      return false; 
+    }
+
+    return true;
   }
 }
