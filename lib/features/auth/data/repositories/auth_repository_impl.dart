@@ -1,6 +1,3 @@
-// 1. Hide the built-in Dart Error to prevent naming collisions
-import 'dart:core' hide Error; 
-
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -50,16 +47,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
       await ref.read(authControllerProvider.notifier).login(accessToken, refreshToken);
       
-      // 2. Explicitly type the Success return
-      return Success<User, Failure>(userModel);
+      return Ok(userModel);
       
     } on DioException catch (e) {
-      // 3. Explicitly type the Error return to fix type inference
-      return Error<User, Failure>(
-        ServerFailure(e.response?.data['message'] ?? 'Login failed')
-      );
+      return Err(ServerFailure(e.response?.data['message'] ?? 'Login failed'));
     } catch (e) {
-      return Error<User, Failure>(ServerFailure(e.toString()));
+      return Err(ServerFailure(e.toString()));
     }
   }
 
@@ -79,15 +72,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
       await ref.read(authControllerProvider.notifier).login(accessToken, refreshToken);
       
-      return Success<User, Failure>(userModel);
+      return Ok(userModel);
       
     } on DioException catch (e) {
-      // Apply the exact same fix here for register
-      return Error<User, Failure>(
-        ServerFailure(e.response?.data['message'] ?? 'Registration failed')
-      );
+      return Err(ServerFailure(e.response?.data['message'] ?? 'Registration failed'));
     } catch (e) {
-      return Error<User, Failure>(ServerFailure(e.toString()));
+      return Err(ServerFailure(e.toString()));
     }
   }
 

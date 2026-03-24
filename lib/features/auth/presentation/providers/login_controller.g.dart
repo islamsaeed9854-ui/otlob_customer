@@ -41,7 +41,7 @@ final class LoginControllerProvider
   }
 }
 
-String _$loginControllerHash() => r'b32016ca9d740267f36337ce790ae72ac01b78d4';
+String _$loginControllerHash() => r'44b0419a793119a4b441435da3ccb5d86f1ed9a0';
 
 abstract class _$LoginController extends $Notifier<AsyncValue<void>> {
   AsyncValue<void> build();
