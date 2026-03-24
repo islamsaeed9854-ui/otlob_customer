@@ -1,23 +1,22 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:injectable/injectable.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/navigation_service.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
 
-@lazySingleton
-class AppRouter {
-  final NavigationService _navigationService;
+part 'app_router.g.dart';
 
-  AppRouter(this._navigationService);
+@Riverpod(keepAlive: true)
+GoRouter appRouter(Ref ref) {
+  final navigationService = ref.read(navigationServiceProvider);
 
-  late final GoRouter _router = GoRouter(
-    navigatorKey: _navigationService.navigatorKey,
+  return GoRouter(
+    navigatorKey: navigationService.navigatorKey,
     initialLocation: RoutePaths.splash,
     debugLogDiagnostics: kDebugMode,
-
     routes: [
       GoRoute(
         path: RoutePaths.splash,
@@ -45,6 +44,4 @@ class AppRouter {
       ),
     ],
   );
-
-  GoRouter get router => _router;
 }

@@ -1,9 +1,17 @@
-import 'package:injectable/injectable.dart';
-import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
-@lazySingleton
+part 'socket_service.g.dart';
+
+@Riverpod(keepAlive: true)
+SocketService socketService(Ref ref) {
+  final service = SocketService();
+  ref.onDispose(service.disconnect);
+  return service;
+}
+
 class SocketService {
   io.Socket? _socket;
   final Logger _logger = Logger();
@@ -23,26 +31,19 @@ class SocketService {
     );
 
     _socket?.connect();
-
-    _socket?.onConnect((_) => _logger.i('✅ Socket connected successfully'));
+    _socket?.onConnect((_) => _logger.i('✅ Socket connected'));
     _socket?.onDisconnect((_) => _logger.w('❌ Socket disconnected'));
   }
 
-  void on(String eventName, Function(dynamic) callback) {
-    _socket?.on(eventName, callback);
-  }
+  void on(String eventName, Function(dynamic) callback) =>
+      _socket?.on(eventName, callback);
 
-  void emit(String eventName, dynamic data) {
-    _socket?.emit(eventName, data);
-  }
+  void emit(String eventName, dynamic data) =>
+      _socket?.emit(eventName, data);
 
-  void off(String eventName) {
-    _socket?.off(eventName);
-  }
+  void off(String eventName) => _socket?.off(eventName);
 
-  void connect() {
-    _socket?.connect();
-  }
+  void connect() => _socket?.connect();
 
   void disconnect() {
     _socket?.disconnect();

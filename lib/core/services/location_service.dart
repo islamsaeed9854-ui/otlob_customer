@@ -1,22 +1,21 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
-import 'package:injectable/injectable.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'location_service.g.dart';
 
 class LocationServiceDisabledException implements Exception {}
-
 class LocationPermissionDeniedException implements Exception {}
-
 class LocationPermissionPermanentException implements Exception {}
-
 class LocationTimeoutException implements Exception {}
 
-@lazySingleton
+@Riverpod(keepAlive: true)
+LocationService locationService(Ref ref) => LocationService();
+
 class LocationService {
   Future<Position> getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      throw LocationServiceDisabledException();
-    }
+    if (!serviceEnabled) throw LocationServiceDisabledException();
 
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -39,9 +38,7 @@ class LocationService {
       );
     } on TimeoutException {
       final lastKnownPosition = await Geolocator.getLastKnownPosition();
-      if (lastKnownPosition != null) {
-        return lastKnownPosition;
-      }
+      if (lastKnownPosition != null) return lastKnownPosition;
       throw LocationTimeoutException();
     }
   }
