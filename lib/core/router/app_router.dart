@@ -8,6 +8,7 @@ import '../services/navigation_service.dart';
 import '../../features/auth/presentation/providers/auth_controller.dart';
 import '../../features/splash/presentation/pages/splash_screen.dart';
 import '../../features/onboarding/presentation/pages/onboarding_screen.dart';
+import '../../features/auth/presentation/pages/register_screen.dart';
 import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
@@ -89,6 +90,11 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.login,
         name: RouteNames.login,
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.register,
+        name: RouteNames.register,
+        builder: (context, state) => const RegisterScreen(),
       ),
       GoRoute(
         path: RoutePaths.home,
