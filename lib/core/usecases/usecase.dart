@@ -1,18 +1,14 @@
-import 'package:fpdart/fpdart.dart';
-import 'package:equatable/equatable.dart';
 import '../errors/failure.dart';
+import '../utils/result.dart';
 
 abstract class UseCase<T, Params> {
-  Future<Either<Failure, T>> call(Params params);
+  Future<Result<T, Failure>> call(Params params);
 }
 
 abstract class StreamUseCase<T, Params> {
-  Stream<Either<Failure, T>> call(Params params);
+  Stream<Result<T, Failure>> call(Params params);
 }
 
-class NoParams extends Equatable {
+class NoParams {
   const NoParams();
-
-  @override
-  List<Object?> get props => [];
 }
