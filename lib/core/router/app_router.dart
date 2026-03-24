@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:otlob_customer/features/auth/presentation/pages/login_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/navigation_service.dart';
@@ -87,15 +88,7 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RoutePaths.login,
         name: RouteNames.login,
-        builder: (context, state) {
-          final redirectTo = state.uri.queryParameters['redirect'];
-          return Scaffold(
-            appBar: AppBar(title: const Text('Login')),
-            body: Center(
-              child: Text('Login UI goes here. Redirect: $redirectTo'),
-            ),
-          );
-        },
+        builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: RoutePaths.home,
