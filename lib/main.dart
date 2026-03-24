@@ -12,7 +12,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
-  await Firebase.initializeApp();
+  // await Firebase.initializeApp();
   await EasyLocalization.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
