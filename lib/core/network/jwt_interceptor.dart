@@ -3,14 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/token_service.dart';
 import '../../features/auth/presentation/providers/auth_controller.dart';
-import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart'; 
 
 class JwtInterceptor extends Interceptor {
   final Ref ref;
   final Dio dio;
-  final AuthRepository authRepository;
-
-  JwtInterceptor(this.ref, this.dio, this.authRepository);
+  
+  JwtInterceptor(this.ref, this.dio);
 
   Future<String?>? _refreshTokenFuture;
 
@@ -55,8 +54,7 @@ class JwtInterceptor extends Interceptor {
           final requestOptions = err.requestOptions;
 
           requestOptions.extra['retried'] = true;
-          requestOptions.headers['Authorization'] =
-              'Bearer $newToken';
+          requestOptions.headers['Authorization'] = 'Bearer $newToken';
 
           final response = await dio.fetch(requestOptions);
           return handler.resolve(response);
@@ -85,6 +83,8 @@ class JwtInterceptor extends Interceptor {
 
   Future<String?> _refresh() async {
     try {
+      final authRepository = ref.read(authRepositoryProvider);
+      
       return await authRepository.refreshToken();
     } catch (_) {
       _handleLogout();
