@@ -105,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // === ADDED THE SIGN UP BUTTON HERE ===
                 const SizedBox(height: 24),
                 TextButton(
-                  onPressed: () => context.push(RoutePaths.register),
+                  onPressed: () => context.go(RoutePaths.register),
                   child: RichText(
                     text: TextSpan(
                       text: "Don't have an account? ",
