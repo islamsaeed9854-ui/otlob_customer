@@ -1,44 +1,33 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/bloc/app_settings/app_settings_cubit.dart';
-import 'core/bloc/app_settings/app_settings_state.dart';
+import 'core/providers/app_settings_provider.dart'; 
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
-class OtlobApp extends StatelessWidget {
+class OtlobApp extends ConsumerWidget {
   const OtlobApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<AppSettingsCubit>(
-          create: (context) => GetIt.I<AppSettingsCubit>(),
-        ),
-      ],
-      child: BlocBuilder<AppSettingsCubit, AppSettingsState>(
-        builder: (context, state) {
-          final router = GetIt.I<AppRouter>().router;
+  Widget build(BuildContext context, WidgetRef ref) {
 
-          return MaterialApp.router(
-            title: 'Otlob',
-            debugShowCheckedModeBanner: false,
+    final appSettings = ref.watch(appSettingsProvider);
+    final router = ref.watch(appRouterProvider);
 
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
+    return MaterialApp.router(
+      title: 'Otlob',
+      debugShowCheckedModeBanner: false,
 
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: state.themeMode,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
 
-            routerConfig: router,
-          );
-        },
-      ),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: appSettings.themeMode,
+
+      routerConfig: router,
     );
   }
 }
