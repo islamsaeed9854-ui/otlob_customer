@@ -1,14 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:otlob_customer/features/auth/presentation/pages/login_screen.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../services/navigation_service.dart';
 import '../../features/auth/presentation/providers/auth_controller.dart';
 import '../../features/splash/presentation/pages/splash_screen.dart';
 import '../../features/onboarding/presentation/pages/onboarding_screen.dart';
+import '../../features/auth/presentation/pages/login_screen.dart';
 import '../../features/auth/presentation/pages/register_screen.dart';
+import '../../features/auth/presentation/pages/forgot_password_screen.dart';
+import '../../features/auth/presentation/pages/verify_otp_screen.dart';
+import '../../features/auth/presentation/pages/new_password_screen.dart';
 import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
@@ -23,7 +26,6 @@ class RouterNotifier extends ChangeNotifier {
       authControllerProvider,
       (_, _) => notifyListeners(),
     );
-
     _ref.listen<AppSettingsState>(
       appSettingsProvider,
       (_, _) => notifyListeners(),
@@ -32,36 +34,33 @@ class RouterNotifier extends ChangeNotifier {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final authStatus = _ref.read(authControllerProvider);
-
     final hasSeenOnboarding = _ref.read(appSettingsProvider).hasSeenOnboarding;
 
-    final isGoingToSplash = state.uri.path == RoutePaths.splash;
-    final isGoingToLogin = state.uri.path == RoutePaths.login;
-    final isGoingToOnboarding = state.uri.path == RoutePaths.onboarding;
-    final isGoingToRegister = state.uri.path == RoutePaths.register;
+    final path = state.uri.path;
+    final isGoingToSplash = path == RoutePaths.splash;
+    final isGoingToOnboarding = path == RoutePaths.onboarding;
+
+    final isAuthRoute =
+        path == RoutePaths.login ||
+        path == RoutePaths.register ||
+        path == RoutePaths.forgotPassword ||
+        path == RoutePaths.verifyOtp ||
+        path == RoutePaths.newPassword;
 
     if (authStatus == AuthStatus.initial) {
       return isGoingToSplash ? null : RoutePaths.splash;
     }
 
     if (authStatus == AuthStatus.unauthenticated) {
-      if (!hasSeenOnboarding) {
+      if (!hasSeenOnboarding)
         return isGoingToOnboarding ? null : RoutePaths.onboarding;
-      }
-
-      if (!isGoingToRegister && !isGoingToLogin) {
-        return '${RoutePaths.login}?redirect=${state.uri.path}';
-      }
+      if (!isAuthRoute) return '${RoutePaths.login}?redirect=${state.uri.path}';
       return null;
     }
 
     if (authStatus == AuthStatus.authenticated) {
-      if (isGoingToLogin ||
-          isGoingToSplash ||
-          isGoingToOnboarding ||
-          isGoingToRegister) {
+      if (isAuthRoute || isGoingToSplash || isGoingToOnboarding)
         return RoutePaths.home;
-      }
     }
 
     return null;
@@ -99,6 +98,28 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.register,
         name: RouteNames.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.forgotPassword,
+        name: RouteNames.forgotPassword,
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.verifyOtp,
+        name: RouteNames.verifyOtp,
+        builder: (context, state) =>
+            VerifyOtpScreen(email: state.extra as String? ?? ''),
+      ),
+      GoRoute(
+        path: RoutePaths.newPassword,
+        name: RouteNames.newPassword,
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          return NewPasswordScreen(
+            email: args['email'] ?? '',
+            otp: args['otp'] ?? '',
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.home,
