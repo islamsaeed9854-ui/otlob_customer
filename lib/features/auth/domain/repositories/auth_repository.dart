@@ -4,7 +4,7 @@ import '../entities/user.dart';
 
 abstract class AuthRepository {
   Future<Result<User, Failure>> login({
-    required String email, 
+    required String email,
     required String password,
   });
 
@@ -16,4 +16,17 @@ abstract class AuthRepository {
   });
 
   Future<String> refreshToken();
+
+  Future<Result<void, Failure>> forgotPassword({required String email});
+
+  Future<Result<void, Failure>> verifyOtp({
+    required String email,
+    required String otp,
+  });
+
+  Future<Result<void, Failure>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
 }

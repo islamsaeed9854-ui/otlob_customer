@@ -37,7 +37,10 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<Result<User, Failure>> login({required String email, required String password}) async {
+  Future<Result<User, Failure>> login({
+    required String email,
+    required String password,
+  }) async {
     try {
       final data = await remoteDataSource.login(email, password);
 
@@ -45,10 +48,11 @@ class AuthRepositoryImpl implements AuthRepository {
       final refreshToken = data['refresh_token'];
       final userModel = UserModel.fromJson(data['user']);
 
-      await ref.read(authControllerProvider.notifier).login(accessToken, refreshToken);
-      
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(accessToken, refreshToken);
+
       return Ok(userModel);
-      
     } on DioException catch (e) {
       return Err(ServerFailure(e.response?.data['message'] ?? 'Login failed'));
     } catch (e) {
@@ -58,24 +62,32 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Result<User, Failure>> register({
-    required String name, 
-    required String email, 
-    required String password, 
+    required String name,
+    required String email,
+    required String password,
     String? phone,
   }) async {
     try {
-      final data = await remoteDataSource.register(name, email, password, phone);
+      final data = await remoteDataSource.register(
+        name,
+        email,
+        password,
+        phone,
+      );
 
       final accessToken = data['access_token'];
       final refreshToken = data['refresh_token'];
       final userModel = UserModel.fromJson(data['user']);
 
-      await ref.read(authControllerProvider.notifier).login(accessToken, refreshToken);
-      
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(accessToken, refreshToken);
+
       return Ok(userModel);
-      
     } on DioException catch (e) {
-      return Err(ServerFailure(e.response?.data['message'] ?? 'Registration failed'));
+      return Err(
+        ServerFailure(e.response?.data['message'] ?? 'Registration failed'),
+      );
     } catch (e) {
       return Err(ServerFailure(e.toString()));
     }
@@ -102,5 +114,54 @@ class AuthRepositoryImpl implements AuthRepository {
     );
 
     return newAccessToken;
+  }
+
+  @override
+  Future<Result<void, Failure>> forgotPassword({required String email}) async {
+    try {
+      await remoteDataSource.forgotPassword(email);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(
+        ServerFailure(e.response?.data['message'] ?? 'Failed to send OTP'),
+      );
+    } catch (e) {
+      return Err(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      await remoteDataSource.verifyOtp(email, otp);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(ServerFailure(e.response?.data['message'] ?? 'Invalid OTP'));
+    } catch (e) {
+      return Err(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Result<void, Failure>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.resetPassword(email, otp, newPassword);
+      return const Ok(null);
+    } on DioException catch (e) {
+      return Err(
+        ServerFailure(
+          e.response?.data['message'] ?? 'Failed to reset password',
+        ),
+      );
+    } catch (e) {
+      return Err(ServerFailure(e.toString()));
+    }
   }
 }

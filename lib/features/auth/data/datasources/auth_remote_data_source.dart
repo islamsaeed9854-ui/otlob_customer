@@ -36,10 +36,38 @@ class AuthRemoteDataSource {
         'name': name,
         'email': email,
         'password': password,
-        'phone': ?phone,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
       },
       options: Options(extra: {'requiresAuth': false}),
     );
     return response.data;
+  }
+
+  Future<void> forgotPassword(String email) async {
+    await _dio.post(
+      '/auth/forgot-password',
+      data: {'email': email},
+      options: Options(extra: {'requiresAuth': false}),
+    );
+  }
+
+  Future<void> verifyOtp(String email, String otp) async {
+    await _dio.post(
+      '/auth/verify-otp',
+      data: {'email': email, 'otp': otp},
+      options: Options(extra: {'requiresAuth': false}),
+    );
+  }
+
+  Future<void> resetPassword(
+    String email,
+    String otp,
+    String newPassword,
+  ) async {
+    await _dio.post(
+      '/auth/reset-password',
+      data: {'email': email, 'otp': otp, 'password': newPassword},
+      options: Options(extra: {'requiresAuth': false}),
+    );
   }
 }
