@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart'; // Added for routing
+import 'package:go_router/go_router.dart';
 
 import '../providers/login_controller.dart';
-import '../../../../core/router/route_paths.dart'; // Ensure you import your RoutePaths
+import '../../../../core/router/route_paths.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -92,7 +92,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   validator: (v) =>
                       (v == null || v.length < 6) ? 'Min 6 characters' : null,
                 ),
-                const SizedBox(height: 32),
+
+                // === ADDED FORGOT PASSWORD BUTTON HERE ===
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => context.push(RoutePaths.forgotPassword),
+                    child: Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // =========================================
+                const SizedBox(
+                  height: 24,
+                ), // Adjusted spacing for the Login button
                 SizedBox(
                   height: 50,
                   child: ElevatedButton(
@@ -102,7 +122,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         : const Text('Login', style: TextStyle(fontSize: 18)),
                   ),
                 ),
-                // === ADDED THE SIGN UP BUTTON HERE ===
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () => context.go(RoutePaths.register),
