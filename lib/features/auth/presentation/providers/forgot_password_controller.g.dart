@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'forget_password_controller.dart';
+part of 'forgot_password_controller.dart';
 
 // **************************************************************************
 // RiverpodGenerator

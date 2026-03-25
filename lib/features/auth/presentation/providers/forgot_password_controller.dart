@@ -1,7 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/usecases/forgot_password_usecase.dart';
 
-part 'forget_password_controller.g.dart';
+part 'forgot_password_controller.g.dart';
 
 @riverpod
 class ForgotPasswordController extends _$ForgotPasswordController {
