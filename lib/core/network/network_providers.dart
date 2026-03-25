@@ -9,7 +9,7 @@ part 'network_providers.g.dart';
 
 @Riverpod(keepAlive: true)
 Dio dio(Ref ref) {
-  final baseUrl = dotenv.env['API_URL'] ?? 'http://10.0.2.2:3000';
+  final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
 
   final dio = Dio(
     BaseOptions(
