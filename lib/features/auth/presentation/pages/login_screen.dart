@@ -60,12 +60,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                
+                // === ADDED LOGO HERE ===
+                Center(
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 120, // Adjust the height as needed for your design
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // =======================
+
                 Text(
                   'Log in to Otlob',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center, // Center aligned to match the logo nicely
                 ),
                 const SizedBox(height: 32),
                 TextFormField(

@@ -69,11 +69,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
+
+                // === ADDED LOGO HERE ===
+                Center(
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 120, // Keep height consistent with the login screen
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                // =======================
+
                 Text(
                   'Join Otlob',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center, // Center aligned to match the logo nicely
                 ),
                 const SizedBox(height: 32),
                 TextFormField(
