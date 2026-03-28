@@ -13,7 +13,11 @@ class VerifyOtpController extends _$VerifyOtpController {
   Future<bool> verify(String email, String otp, {bool isPasswordReset = false}) async {
     state = const AsyncLoading();
     final result = await ref.read(verifyOtpUseCaseProvider)(
-      VerifyOtpParams(email: email, otp: otp),
+      VerifyOtpParams(
+        email: email,
+        otp: otp,
+        purpose: isPasswordReset ? 'PASSWORD_RESET' : 'VERIFICATION',
+      ),
     );
 
     return result.fold(

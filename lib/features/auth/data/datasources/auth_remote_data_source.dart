@@ -51,10 +51,14 @@ class AuthRemoteDataSource {
     );
   }
 
-  Future<void> verifyOtp(String email, String otp) async {
+  Future<void> verifyOtp(String email, String otp, {String? purpose}) async {
     await _dio.post(
       '/auth/verify/confirm',
-      data: {'contact': email, 'code': otp},
+      data: {
+        'contact': email,
+        'code': otp,
+        if (purpose != null) 'purpose': purpose,
+      },
       options: Options(extra: {'requiresAuth': false}),
     );
   }

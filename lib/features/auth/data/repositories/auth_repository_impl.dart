@@ -157,9 +157,10 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<Result<void, Failure>> verifyOtp({
     required String email,
     required String otp,
+    String? purpose,
   }) async {
     try {
-      await remoteDataSource.verifyOtp(email, otp);
+      await remoteDataSource.verifyOtp(email, otp, purpose: purpose);
       return const Ok(null);
     } on DioException catch (e) {
       print('VerifyOtp Error: ${e.response?.data}');

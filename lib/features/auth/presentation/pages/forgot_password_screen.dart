@@ -45,6 +45,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      } else if (next.hasValue && !next.isLoading) {
+        // This means success. Show a snackbar.
+         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('If an account exists with this email, you will receive an OTP code.'),
+            backgroundColor: Colors.blue,
+          ),
+        );
       }
     });
 

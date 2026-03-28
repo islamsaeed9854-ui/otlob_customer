@@ -18,12 +18,17 @@ class VerifyOtpUseCase implements UseCase<void, VerifyOtpParams> {
 
   @override
   Future<Result<void, Failure>> call(VerifyOtpParams params) async {
-    return await repository.verifyOtp(email: params.email, otp: params.otp);
+    return await repository.verifyOtp(
+      email: params.email,
+      otp: params.otp,
+      purpose: params.purpose,
+    );
   }
 }
 
 class VerifyOtpParams {
   final String email;
   final String otp;
-  VerifyOtpParams({required this.email, required this.otp});
+  final String? purpose;
+  VerifyOtpParams({required this.email, required this.otp, this.purpose});
 }
