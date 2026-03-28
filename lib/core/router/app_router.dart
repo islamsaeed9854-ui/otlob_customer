@@ -58,9 +58,17 @@ class RouterNotifier extends ChangeNotifier {
       return null;
     }
 
+    if (authStatus == AuthStatus.unverified) {
+      if (path != RoutePaths.verifyOtp && path != RoutePaths.login) {
+        return RoutePaths.verifyOtp;
+      }
+      return null;
+    }
+
     if (authStatus == AuthStatus.authenticated) {
-      if (isAuthRoute || isGoingToSplash || isGoingToOnboarding)
+      if (isAuthRoute || isGoingToSplash || isGoingToOnboarding) {
         return RoutePaths.home;
+      }
     }
 
     return null;
@@ -107,8 +115,13 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RoutePaths.verifyOtp,
         name: RouteNames.verifyOtp,
-        builder: (context, state) =>
-            VerifyOtpScreen(email: state.extra as String? ?? ''),
+        builder: (context, state) {
+          final args = state.extra as Map<String, dynamic>? ?? {};
+          return VerifyOtpScreen(
+            email: args['email'] ?? '',
+            isPasswordReset: args['isPasswordReset'] ?? false,
+          );
+        },
       ),
       GoRoute(
         path: RoutePaths.newPassword,

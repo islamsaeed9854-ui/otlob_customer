@@ -79,6 +79,18 @@ class TokenService {
     return JwtDecoder.isExpired(access);
   }
 
+  Future<bool> isUserVerified() async {
+    final access = await getAccessToken();
+    if (access == null) return false;
+    
+    try {
+      final decodedToken = JwtDecoder.decode(access);
+      return decodedToken['verified'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> hasValidTokens() async {
     final access = await getAccessToken();
     final refresh = await getRefreshToken();

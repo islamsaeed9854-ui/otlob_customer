@@ -3,7 +3,7 @@ import '../../../../core/services/token_service.dart';
 
 part 'auth_controller.g.dart';
 
-enum AuthStatus { initial, authenticated, unauthenticated }
+enum AuthStatus { initial, authenticated, unauthenticated, unverified }
 
 @Riverpod(keepAlive: true)
 class AuthController extends _$AuthController {
@@ -17,7 +17,8 @@ class AuthController extends _$AuthController {
     final isValid = await tokenService.hasValidTokens();
 
     if (isValid) {
-      state = AuthStatus.authenticated;
+      final isVerified = await tokenService.isUserVerified();
+      state = isVerified ? AuthStatus.authenticated : AuthStatus.unverified;
     } else {
       await tokenService.clearTokens();
       state = AuthStatus.unauthenticated;
@@ -27,7 +28,9 @@ class AuthController extends _$AuthController {
   Future<void> login(String accessToken, String refreshToken) async {
     final tokenService = ref.read(tokenServiceProvider);
     await tokenService.saveTokens(accessToken: accessToken, refreshToken: refreshToken);
-    state = AuthStatus.authenticated;
+    
+    final isVerified = await tokenService.isUserVerified();
+    state = isVerified ? AuthStatus.authenticated : AuthStatus.unverified;
   }
 
   Future<void> logout() async {

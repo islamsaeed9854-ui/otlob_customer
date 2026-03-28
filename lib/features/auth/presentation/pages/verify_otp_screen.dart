@@ -6,7 +6,14 @@ import '../providers/verify_otp_controller.dart';
 
 class VerifyOtpScreen extends ConsumerStatefulWidget {
   final String email;
-  const VerifyOtpScreen({super.key, required this.email});
+  final bool isPasswordReset;
+
+  const VerifyOtpScreen({
+    super.key,
+    required this.email,
+    this.isPasswordReset = false,
+  });
+
   @override
   ConsumerState<VerifyOtpScreen> createState() => _VerifyOtpScreenState();
 }
@@ -14,24 +21,38 @@ class VerifyOtpScreen extends ConsumerStatefulWidget {
 class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _otpController = TextEditingController();
+  late final TextEditingController _emailController;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(text: widget.email);
+  }
 
   @override
   void dispose() {
     _otpController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       final otp = _otpController.text.trim();
+      final email = _emailController.text.trim();
       final success = await ref
           .read(verifyOtpControllerProvider.notifier)
-          .verify(widget.email, otp);
+          .verify(email, otp, isPasswordReset: widget.isPasswordReset);
       if (success && mounted) {
-        context.push(
-          RoutePaths.newPassword,
-          extra: {'email': widget.email, 'otp': otp},
-        );
+        if (widget.isPasswordReset) {
+          context.push(
+            RoutePaths.newPassword,
+            extra: {'email': email, 'otp': otp},
+          );
+        } else {
+          // It's part of registration verification. VerifyOtpController handles the token refresh.
+          // The router will automatically redirect to home if auth status becomes verified.
+        }
       }
     }
   }
@@ -69,11 +90,25 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'We sent a verification code to ${widget.email}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                if (widget.email.isNotEmpty)
+                  Text(
+                    'We sent a verification code to ${widget.email}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 const SizedBox(height: 32),
+                if (widget.email.isEmpty) ...[
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email Address',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    validator: (v) =>
+                        (v == null || !v.contains('@')) ? 'Valid email required' : null,
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 TextFormField(
                   controller: _otpController,
                   keyboardType: TextInputType.number,
