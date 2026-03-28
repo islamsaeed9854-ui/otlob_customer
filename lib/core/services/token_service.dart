@@ -95,18 +95,12 @@ class TokenService {
 
   Future<bool> isUserVerified() async {
     final access = await getAccessToken();
-    if (access == null) {
-      print('DEBUG: No access token found in SecureStorage');
-      return false;
-    }
+    if (access == null) return false;
     
     try {
       final decodedToken = JwtDecoder.decode(access);
-      final isVerified = decodedToken['verified'] == true;
-      print('DEBUG: Decoded Token [verified]: $isVerified, Full Payload: $decodedToken');
-      return isVerified;
-    } catch (e) {
-      print('DEBUG: Error decoding JWT: $e');
+      return decodedToken['verified'] == true;
+    } catch (_) {
       return false;
     }
   }
