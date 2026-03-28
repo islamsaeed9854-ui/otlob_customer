@@ -13,6 +13,16 @@ import '../../features/auth/presentation/pages/forgot_password_screen.dart';
 import '../../features/auth/presentation/pages/verify_otp_screen.dart';
 import '../../features/auth/presentation/pages/new_password_screen.dart';
 import '../../features/home/presentation/pages/home_screen.dart';
+import '../../features/home/presentation/pages/restaurant_detail_screen.dart';
+import '../../features/home/presentation/pages/all_vendors_screen.dart';
+import '../../features/cart/presentation/pages/cart_screen.dart';
+import '../../features/cart/presentation/pages/checkout_screen.dart';
+import '../../features/orders/presentation/pages/orders_screen.dart';
+import '../../features/profile/presentation/pages/profile_screen.dart';
+import '../../features/profile/presentation/pages/notifications_screen.dart';
+import '../../features/profile/presentation/pages/addresses_screen.dart';
+import '../../features/home/presentation/pages/custom_delivery_screen.dart';
+import '../../features/chat/presentation/pages/chat_screen.dart';
 import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
@@ -139,6 +149,71 @@ GoRouter appRouter(Ref ref) {
         path: RoutePaths.home,
         name: RouteNames.home,
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/restaurant',
+        name: 'restaurant',
+        builder: (context, state) {
+          final restaurant = state.extra as Map<String, dynamic>;
+          return RestaurantDetailScreen(restaurant: restaurant);
+        },
+      ),
+      GoRoute(
+        path: '/all-vendors',
+        name: 'all-vendors',
+        builder: (context, state) {
+          final type = state.extra as String? ?? 'restaurant';
+          return AllVendorsScreen(type: type);
+        },
+      ),
+      GoRoute(
+        path: '/cart',
+        name: 'cart',
+        builder: (context, state) => const CartScreen(),
+      ),
+      GoRoute(
+        path: '/checkout',
+        name: 'checkout',
+        builder: (context, state) {
+          final vendorId = state.extra as String?;
+          return CheckoutScreen(vendorId: vendorId);
+        },
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/orders',
+        name: 'orders',
+        builder: (context, state) => const OrdersScreen(),
+      ),
+      GoRoute(
+        path: '/custom-delivery',
+        name: 'custom-delivery',
+        builder: (context, state) => const CustomDeliveryScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:type/:id',
+        name: 'chat',
+        builder: (context, state) {
+          final type = state.pathParameters['type'] ?? 'support';
+          final id = state.pathParameters['id'] ?? '0';
+          final extra = state.extra as Map<String, dynamic>?;
+          final title = extra?['title'] as String? ?? (type == 'support' ? 'Support' : 'Vendor');
+          return ChatScreen(conversationId: id, type: type, title: title);
+        },
+      ),
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/addresses',
+        name: 'addresses',
+        builder: (context, state) => const AddressesScreen(),
       ),
     ],
   );

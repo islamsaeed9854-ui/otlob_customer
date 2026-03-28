@@ -81,6 +81,7 @@ dependencies:
   logger: ^2.6.2
   json_annotation: ^4.11.0
   easy_localization: ^3.0.8
+  lottie: ^3.3.2
 
 dev_dependencies:
   flutter_test:

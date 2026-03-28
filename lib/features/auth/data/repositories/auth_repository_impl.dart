@@ -58,6 +58,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final tokenService = ref.read(tokenServiceProvider);
       await tokenService.saveUserEmail(userModel.email);
+      await tokenService.saveUserName(userModel.name);
+      if (userModel.phone != null) {
+        await tokenService.saveUserPhone(userModel.phone!);
+      }
 
       await ref
           .read(authControllerProvider.notifier)
@@ -95,6 +99,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
       final tokenService = ref.read(tokenServiceProvider);
       await tokenService.saveUserEmail(userModel.email);
+      await tokenService.saveUserName(userModel.name);
+      if (userModel.phone != null) {
+        await tokenService.saveUserPhone(userModel.phone!);
+      }
 
       await ref
           .read(authControllerProvider.notifier)

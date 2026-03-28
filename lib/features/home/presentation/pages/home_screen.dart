@@ -213,21 +213,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 width: 1,
               ),
             ),
-            child: Stack(
-              children: [
-                Icon(Icons.notifications_none_rounded,
-                    size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
-                Positioned(
-                  right: 2,
-                  top: 2,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                        color: Colors.red, shape: BoxShape.circle),
+            child: GestureDetector(
+              onTap: () => context.push('/notifications'),
+              child: Stack(
+                children: [
+                  Icon(Icons.notifications_none_rounded,
+                      size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
+                  Positioned(
+                    right: 2,
+                    top: 2,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                          color: Colors.red, shape: BoxShape.circle),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -377,7 +380,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final s = AppStrings.of(context);
     return GestureDetector(
-      onTap: () {},
+      onTap: () => context.push('/custom-delivery'),
       child: Container(
         margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -531,11 +534,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(s.seeAll,
-            style: const TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 14)),
+        GestureDetector(
+          onTap: () => context.push('/all-vendors', extra: _selectedType),
+          child: Text(s.seeAll,
+              style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14)),
+        ),
       ]),
     );
   }
@@ -609,7 +615,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       selectedLabelStyle:
           const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
       elevation: 20,
-      onTap: (index) {},
+      onTap: (index) {
+        if (index == 1) context.push('/orders');
+        if (index == 2) {
+          context.push('/chat/support/GENERAL',
+              extra: {'title': s.helpCenter});
+        }
+        if (index == 3) context.push('/profile');
+      },
       items: [
         BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
