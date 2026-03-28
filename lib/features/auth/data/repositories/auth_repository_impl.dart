@@ -44,9 +44,10 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final data = await remoteDataSource.login(email, password);
 
-      final accessToken = data['access_token'];
-      final refreshToken = data['refresh_token'];
-      final userModel = UserModel.fromJson(data['user']);
+      final payload = data['data'];
+      final accessToken = payload['access_token'];
+      final refreshToken = payload['refresh_token'];
+      final userModel = UserModel.fromJson(payload['user']);
 
       await ref
           .read(authControllerProvider.notifier)
@@ -75,9 +76,10 @@ class AuthRepositoryImpl implements AuthRepository {
         phone,
       );
 
-      final accessToken = data['access_token'];
-      final refreshToken = data['refresh_token'];
-      final userModel = UserModel.fromJson(data['user']);
+      final payload = data['data'];
+      final accessToken = payload['access_token'];
+      final refreshToken = payload['refresh_token'];
+      final userModel = UserModel.fromJson(payload['user']);
 
       await ref
           .read(authControllerProvider.notifier)
@@ -105,8 +107,8 @@ class AuthRepositoryImpl implements AuthRepository {
       data: {'refresh_token': refreshToken},
     );
 
-    final newAccessToken = response.data['access_token'];
-    final newRefreshToken = response.data['refresh_token'];
+    final newAccessToken = response.data['data']['access_token'];
+    final newRefreshToken = response.data['data']['refresh_token'];
 
     await tokenService.saveTokens(
       accessToken: newAccessToken,
