@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/token_service.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -9,6 +10,7 @@ class ProfileState {
   final String name;
   final String email;
   final String phone;
+  final String avatar;
   final bool isArabic;
   final bool notificationsEnabled;
   final List<Map<String, dynamic>> addresses;
@@ -17,6 +19,7 @@ class ProfileState {
     required this.name,
     required this.email,
     required this.phone,
+    required this.avatar,
     required this.isArabic,
     required this.notificationsEnabled,
     this.addresses = const [],
@@ -26,6 +29,7 @@ class ProfileState {
     String? name,
     String? email,
     String? phone,
+    String? avatar,
     bool? isArabic,
     bool? notificationsEnabled,
     List<Map<String, dynamic>>? addresses,
@@ -34,6 +38,7 @@ class ProfileState {
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
+      avatar: avatar ?? this.avatar,
       isArabic: isArabic ?? this.isArabic,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       addresses: addresses ?? this.addresses,
@@ -50,6 +55,7 @@ class Profile extends _$Profile {
       name: '',
       email: '',
       phone: '',
+      avatar: '',
       isArabic: true,
       notificationsEnabled: true,
       addresses: [],
@@ -69,11 +75,13 @@ class Profile extends _$Profile {
     final localName = await tokenService.getUserName() ?? '';
     final localEmail = await tokenService.getUserEmail() ?? '';
     final localPhone = await tokenService.getUserPhone() ?? '';
+    final localAvatar = await tokenService.getUserAvatar() ?? '';
     
     state = state.copyWith(
       name: localName,
       email: localEmail,
       phone: localPhone,
+      avatar: localAvatar,
     );
 
     // 2. Fetch latest from backend to ensure accuracy (Fixes "only showing gmail" issue)
@@ -83,13 +91,20 @@ class Profile extends _$Profile {
         final name = data['name'] ?? '';
         final email = data['email'] ?? '';
         final phone = data['phone'] ?? '';
+        final avatar = data['avatar'] ?? '';
         
         // Sync to local storage
         await tokenService.saveUserName(name);
         await tokenService.saveUserEmail(email);
         await tokenService.saveUserPhone(phone);
+        await tokenService.saveUserAvatar(avatar);
 
-        state = state.copyWith(name: name, email: email, phone: phone);
+        state = state.copyWith(
+          name: name, 
+          email: email, 
+          phone: phone,
+          avatar: avatar,
+        );
       },
       (failure) => print('Failed to fetch profile: ${failure.message}'),
     );
@@ -151,6 +166,32 @@ class Profile extends _$Profile {
       ),
       (failure) => throw Exception(failure.message),
     );
+  }
+
+  Future<void> pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+
+    if (image != null) {
+      final repository = ref.read(profileRepositoryProvider);
+      final tokenService = ref.read(tokenServiceProvider);
+      
+      final result = await repository.uploadAvatar(image.path);
+      
+      await result.fold(
+        (data) async {
+          final avatarUrl = data['avatar'];
+          if (avatarUrl != null) {
+            await tokenService.saveUserAvatar(avatarUrl);
+            state = state.copyWith(avatar: avatarUrl);
+          }
+        },
+        (failure) async => throw Exception(failure.message),
+      );
+    }
   }
 }
 

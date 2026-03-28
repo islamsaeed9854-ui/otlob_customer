@@ -7,4 +7,5 @@ abstract class ProfileRepository {
   Future<Result<List<Map<String, dynamic>>, Failure>> getAddresses();
   Future<Result<Map<String, dynamic>, Failure>> createAddress(Map<String, dynamic> data);
   Future<Result<void, Failure>> deleteAddress(String id);
+  Future<Result<Map<String, dynamic>, Failure>> uploadAvatar(String filePath);
 }

@@ -22,6 +22,7 @@ class TokenService {
   static const _userEmailKey = 'user_email';
   static const _userNameKey = 'user_name';
   static const _userPhoneKey = 'user_phone';
+  static const _userAvatarKey = 'user_avatar';
 
   Future<String?> getAccessToken() async {
     return await _storage.read(key: _accessTokenKey);
@@ -37,6 +38,10 @@ class TokenService {
 
   Future<String?> getUserPhone() async {
     return await _storage.read(key: _userPhoneKey);
+  }
+
+  Future<String?> getUserAvatar() async {
+    return await _storage.read(key: _userAvatarKey);
   }
 
   Future<String?> getRefreshToken() async {
@@ -67,6 +72,10 @@ class TokenService {
 
   Future<void> saveUserPhone(String phone) async {
     await _storage.write(key: _userPhoneKey, value: phone);
+  }
+
+  Future<void> saveUserAvatar(String avatar) async {
+    await _storage.write(key: _userAvatarKey, value: avatar);
   }
 
   Future<void> saveRefreshToken(String token) async {
@@ -102,6 +111,7 @@ class TokenService {
       deleteUserEmail(),
       _storage.delete(key: _userNameKey),
       _storage.delete(key: _userPhoneKey),
+      _storage.delete(key: _userAvatarKey),
     ]);
   }
 

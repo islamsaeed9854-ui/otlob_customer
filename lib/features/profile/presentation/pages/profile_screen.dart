@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -120,6 +122,11 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref, AppStrings s, ProfileState profileState) {
+    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
+    final avatarUrl = profileState.avatar.isNotEmpty 
+        ? (profileState.avatar.startsWith('http') ? profileState.avatar : '$baseUrl${profileState.avatar}') 
+        : null;
+
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -128,10 +135,49 @@ class ProfileScreen extends ConsumerWidget {
       ),
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 16, bottom: 32, left: 20, right: 20),
       child: Column(children: [
-        const CircleAvatar(
-          radius: 50,
-          backgroundColor: Colors.white,
-          child: Icon(Icons.person, size: 50, color: AppColors.primary),
+        Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, spreadRadius: 2),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: Colors.grey.shade200,
+                child: avatarUrl != null
+                    ? ClipOval(
+                        child: CachedNetworkImage(
+                          imageUrl: avatarUrl,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => const CircularProgressIndicator(strokeWidth: 2),
+                          errorWidget: (context, url, error) => const Icon(Icons.person, size: 50, color: AppColors.primary),
+                        ),
+                      )
+                    : const Icon(Icons.person, size: 50, color: AppColors.primary),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () => ref.read(profileProvider.notifier).pickAndUploadAvatar(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.camera_alt_rounded, size: 18, color: AppColors.primary),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 14),
         Text(profileState.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),

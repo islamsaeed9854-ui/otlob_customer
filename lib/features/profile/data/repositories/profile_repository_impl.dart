@@ -66,4 +66,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Err(ServerFailure(e.response?.data['message'] ?? 'Failed to delete address'));
     }
   }
+
+  @override
+  Future<Result<Map<String, dynamic>, Failure>> uploadAvatar(String filePath) async {
+    try {
+      final res = await remoteDataSource.uploadAvatar(filePath);
+      return Ok(res);
+    } on DioException catch (e) {
+      return Err(ServerFailure(e.response?.data['message'] ?? 'Failed to upload avatar'));
+    }
+  }
 }

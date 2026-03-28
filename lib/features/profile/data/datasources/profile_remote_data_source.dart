@@ -37,4 +37,12 @@ class ProfileRemoteDataSource {
   Future<void> deleteAddress(String id) async {
     await _dio.delete('/customers/addresses/$id');
   }
+
+  Future<Map<String, dynamic>> uploadAvatar(String filePath) async {
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath),
+    });
+    final response = await _dio.post('/users/me/avatar', data: formData);
+    return response.data['data'];
+  }
 }
