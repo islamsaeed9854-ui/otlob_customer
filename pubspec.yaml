@@ -112,6 +112,7 @@ flutter:
     - assets/translations/
     - assets/logo.png
     - assets/logo_without_background.png
+    - assets/home_cover.jpg
 
 flutter_launcher_icons:
   android: "launcher_icon"

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'auth_controller.dart';
+part of 'favorites_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,51 +9,51 @@ part of 'auth_controller.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(AuthController)
-final authControllerProvider = AuthControllerProvider._();
+@ProviderFor(Favorites)
+final favoritesProvider = FavoritesProvider._();
 
-final class AuthControllerProvider
-    extends $NotifierProvider<AuthController, AuthStatus> {
-  AuthControllerProvider._()
+final class FavoritesProvider
+    extends $NotifierProvider<Favorites, Set<String>> {
+  FavoritesProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'authControllerProvider',
-        isAutoDispose: false,
+        name: r'favoritesProvider',
+        isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$authControllerHash();
+  String debugGetCreateSourceHash() => _$favoritesHash();
 
   @$internal
   @override
-  AuthController create() => AuthController();
+  Favorites create() => Favorites();
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AuthStatus value) {
+  Override overrideWithValue(Set<String> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AuthStatus>(value),
+      providerOverride: $SyncValueProvider<Set<String>>(value),
     );
   }
 }
 
-String _$authControllerHash() => r'b60a1f5307dd2e6adc79608ea197d686a1042a56';
+String _$favoritesHash() => r'd242aad6a54450cc6fdea38feab233fb8d873be3';
 
-abstract class _$AuthController extends $Notifier<AuthStatus> {
-  AuthStatus build();
+abstract class _$Favorites extends $Notifier<Set<String>> {
+  Set<String> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AuthStatus, AuthStatus>;
+    final ref = this.ref as $Ref<Set<String>, Set<String>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AuthStatus, AuthStatus>,
-              AuthStatus,
+              AnyNotifier<Set<String>, Set<String>>,
+              Set<String>,
               Object?,
               Object?
             >;

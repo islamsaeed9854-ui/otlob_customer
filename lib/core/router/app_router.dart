@@ -12,6 +12,7 @@ import '../../features/auth/presentation/pages/register_screen.dart';
 import '../../features/auth/presentation/pages/forgot_password_screen.dart';
 import '../../features/auth/presentation/pages/verify_otp_screen.dart';
 import '../../features/auth/presentation/pages/new_password_screen.dart';
+import '../../features/home/presentation/pages/home_screen.dart';
 import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
@@ -137,8 +138,7 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: RoutePaths.home,
         name: RouteNames.home,
-        builder: (context, state) =>
-            const Scaffold(body: Center(child: Text('Home Screen'))),
+        builder: (context, state) => const HomeScreen(),
       ),
     ],
   );
