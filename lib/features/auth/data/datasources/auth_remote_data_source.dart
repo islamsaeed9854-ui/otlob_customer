@@ -45,16 +45,16 @@ class AuthRemoteDataSource {
 
   Future<void> forgotPassword(String email) async {
     await _dio.post(
-      '/auth/forgot-password',
-      data: {'email': email},
+      '/auth/password/forgot',
+      data: {'contact': email},
       options: Options(extra: {'requiresAuth': false}),
     );
   }
 
   Future<void> verifyOtp(String email, String otp) async {
     await _dio.post(
-      '/auth/verify-otp',
-      data: {'email': email, 'otp': otp},
+      '/auth/verify/confirm',
+      data: {'contact': email, 'code': otp},
       options: Options(extra: {'requiresAuth': false}),
     );
   }
@@ -65,8 +65,8 @@ class AuthRemoteDataSource {
     String newPassword,
   ) async {
     await _dio.post(
-      '/auth/reset-password',
-      data: {'email': email, 'otp': otp, 'password': newPassword},
+      '/auth/password/reset',
+      data: {'contact': email, 'code': otp, 'newPassword': newPassword},
       options: Options(extra: {'requiresAuth': false}),
     );
   }

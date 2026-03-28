@@ -35,6 +35,8 @@ class RouterNotifier extends ChangeNotifier {
   String? redirect(BuildContext context, GoRouterState state) {
     final authStatus = _ref.read(authControllerProvider);
     final hasSeenOnboarding = _ref.read(appSettingsProvider).hasSeenOnboarding;
+    
+    print('DEBUG: Router Redirect Logic - Status: $authStatus, Path: ${state.uri.path}');
 
     final path = state.uri.path;
     final isGoingToSplash = path == RoutePaths.splash;

@@ -16,7 +16,14 @@ part 'auth_repository_impl.g.dart';
 @Riverpod(keepAlive: true)
 AuthRepository authRepository(Ref ref) {
   final remoteDataSource = ref.read(authRemoteDataSourceProvider);
-  final refreshDio = Dio(BaseOptions(baseUrl: dotenv.env['API_URL'] ?? ''));
+  final refreshDio = Dio(BaseOptions(
+    baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000',
+  ));
+
+  refreshDio.interceptors.add(LogInterceptor(
+    requestBody: true,
+    responseBody: true,
+  ));
 
   return AuthRepositoryImpl(
     remoteDataSource: remoteDataSource,
@@ -49,14 +56,19 @@ class AuthRepositoryImpl implements AuthRepository {
       final refreshToken = payload['refresh_token'];
       final userModel = UserModel.fromJson(payload['user']);
 
+      final tokenService = ref.read(tokenServiceProvider);
+      await tokenService.saveUserEmail(userModel.email);
+
       await ref
           .read(authControllerProvider.notifier)
           .login(accessToken, refreshToken);
 
       return Ok(userModel);
     } on DioException catch (e) {
+      print('Login Error: ${e.response?.data}');
       return Err(ServerFailure(e.response?.data['message'] ?? 'Login failed'));
     } catch (e) {
+      print('Login Unexpected Error: $e');
       return Err(ServerFailure(e.toString()));
     }
   }
@@ -81,16 +93,21 @@ class AuthRepositoryImpl implements AuthRepository {
       final refreshToken = payload['refresh_token'];
       final userModel = UserModel.fromJson(payload['user']);
 
+      final tokenService = ref.read(tokenServiceProvider);
+      await tokenService.saveUserEmail(userModel.email);
+
       await ref
           .read(authControllerProvider.notifier)
           .login(accessToken, refreshToken);
 
       return Ok(userModel);
     } on DioException catch (e) {
+      print('Register Error: ${e.response?.data}');
       return Err(
         ServerFailure(e.response?.data['message'] ?? 'Registration failed'),
       );
     } catch (e) {
+      print('Register Unexpected Error: $e');
       return Err(ServerFailure(e.toString()));
     }
   }
@@ -104,7 +121,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
     final response = await refreshDio.post(
       '/auth/refresh',
-      data: {'refresh_token': refreshToken},
+      options: Options(
+        headers: {'Authorization': 'Bearer $refreshToken'},
+      ),
     );
 
     final newAccessToken = response.data['data']['access_token'];
@@ -124,10 +143,12 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.forgotPassword(email);
       return const Ok(null);
     } on DioException catch (e) {
+      print('ForgotPassword Error: ${e.response?.data}');
       return Err(
         ServerFailure(e.response?.data['message'] ?? 'Failed to send OTP'),
       );
     } catch (e) {
+      print('ForgotPassword Unexpected Error: $e');
       return Err(ServerFailure(e.toString()));
     }
   }
@@ -141,8 +162,10 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.verifyOtp(email, otp);
       return const Ok(null);
     } on DioException catch (e) {
+      print('VerifyOtp Error: ${e.response?.data}');
       return Err(ServerFailure(e.response?.data['message'] ?? 'Invalid OTP'));
     } catch (e) {
+      print('VerifyOtp Unexpected Error: $e');
       return Err(ServerFailure(e.toString()));
     }
   }
@@ -157,12 +180,14 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.resetPassword(email, otp, newPassword);
       return const Ok(null);
     } on DioException catch (e) {
+      print('ResetPassword Error: ${e.response?.data}');
       return Err(
         ServerFailure(
           e.response?.data['message'] ?? 'Failed to reset password',
         ),
       );
     } catch (e) {
+      print('ResetPassword Unexpected Error: $e');
       return Err(ServerFailure(e.toString()));
     }
   }

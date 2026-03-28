@@ -23,7 +23,7 @@ class VerifyOtpController extends _$VerifyOtpController {
              await ref.read(authRepositoryProvider).refreshToken();
              await ref.read(authControllerProvider.notifier).checkAuthStatus();
            } catch (e) {
-             // Handle refresh token failure if necessary
+             print('Refresh token failed after OTP verify: $e');
            }
         }
         state = const AsyncData(null);

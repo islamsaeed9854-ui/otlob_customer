@@ -33,7 +33,7 @@ class RegisterController extends _$RegisterController {
         state = const AsyncData(null);
       },
       (failure) {
-        state = AsyncError(failure.code, StackTrace.current);
+        state = AsyncError(failure.message ?? failure.code, StackTrace.current);
       },
     );
   }

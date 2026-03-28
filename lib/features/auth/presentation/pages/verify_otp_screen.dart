@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/services/token_service.dart';
 import '../providers/verify_otp_controller.dart';
 
 class VerifyOtpScreen extends ConsumerStatefulWidget {
@@ -22,11 +23,27 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
   final _formKey = GlobalKey<FormState>();
   final _otpController = TextEditingController();
   late final TextEditingController _emailController;
+  bool _isLoadingEmail = false;
 
   @override
   void initState() {
     super.initState();
     _emailController = TextEditingController(text: widget.email);
+    if (widget.email.isEmpty) {
+      _loadEmail();
+    }
+  }
+
+  Future<void> _loadEmail() async {
+    setState(() => _isLoadingEmail = true);
+    final tokenService = ref.read(tokenServiceProvider);
+    final email = await tokenService.getUserEmail();
+    if (email != null && mounted) {
+      setState(() {
+        _emailController.text = email;
+      });
+    }
+    if (mounted) setState(() => _isLoadingEmail = false);
   }
 
   @override
@@ -69,6 +86,13 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
             backgroundColor: Colors.red,
           ),
         );
+      } else if (next is AsyncData && !next.isLoading && !widget.isPasswordReset) {
+         ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account verified successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
     });
 
@@ -90,13 +114,15 @@ class _VerifyOtpScreenState extends ConsumerState<VerifyOtpScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                if (widget.email.isNotEmpty)
+                if (_emailController.text.isNotEmpty)
                   Text(
-                    'We sent a verification code to ${widget.email}',
+                    'We sent a verification code to ${_emailController.text}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 const SizedBox(height: 32),
-                if (widget.email.isEmpty) ...[
+                if (_isLoadingEmail)
+                  const Center(child: CircularProgressIndicator())
+                else if (_emailController.text.isEmpty) ...[
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,

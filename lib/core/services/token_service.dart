@@ -19,9 +19,14 @@ class TokenService {
 
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _userEmailKey = 'user_email';
 
   Future<String?> getAccessToken() async {
     return await _storage.read(key: _accessTokenKey);
+  }
+
+  Future<String?> getUserEmail() async {
+    return await _storage.read(key: _userEmailKey);
   }
 
   Future<String?> getRefreshToken() async {
@@ -42,6 +47,10 @@ class TokenService {
     await _storage.write(key: _accessTokenKey, value: token);
   }
 
+  Future<void> saveUserEmail(String email) async {
+    await _storage.write(key: _userEmailKey, value: email);
+  }
+
   Future<void> saveRefreshToken(String token) async {
     await _storage.write(key: _refreshTokenKey, value: token);
   }
@@ -60,6 +69,10 @@ class TokenService {
     await _storage.delete(key: _accessTokenKey);
   }
 
+  Future<void> deleteUserEmail() async {
+    await _storage.delete(key: _userEmailKey);
+  }
+
   Future<void> deleteRefreshToken() async {
     await _storage.delete(key: _refreshTokenKey);
   }
@@ -68,6 +81,7 @@ class TokenService {
     await Future.wait([
       deleteAccessToken(),
       deleteRefreshToken(),
+      deleteUserEmail(),
     ]);
   }
 
@@ -81,12 +95,18 @@ class TokenService {
 
   Future<bool> isUserVerified() async {
     final access = await getAccessToken();
-    if (access == null) return false;
+    if (access == null) {
+      print('DEBUG: No access token found in SecureStorage');
+      return false;
+    }
     
     try {
       final decodedToken = JwtDecoder.decode(access);
-      return decodedToken['verified'] == true;
-    } catch (_) {
+      final isVerified = decodedToken['verified'] == true;
+      print('DEBUG: Decoded Token [verified]: $isVerified, Full Payload: $decodedToken');
+      return isVerified;
+    } catch (e) {
+      print('DEBUG: Error decoding JWT: $e');
       return false;
     }
   }
