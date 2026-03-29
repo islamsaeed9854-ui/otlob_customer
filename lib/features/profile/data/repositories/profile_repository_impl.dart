@@ -58,6 +58,16 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<Result<Map<String, dynamic>, Failure>> updateAddress(String id, Map<String, dynamic> data) async {
+    try {
+      final res = await remoteDataSource.updateAddress(id, data);
+      return Ok(res);
+    } on DioException catch (e) {
+      return Err(ServerFailure(e.response?.data['message'] ?? 'Failed to update address'));
+    }
+  }
+
+  @override
   Future<Result<void, Failure>> deleteAddress(String id) async {
     try {
       await remoteDataSource.deleteAddress(id);

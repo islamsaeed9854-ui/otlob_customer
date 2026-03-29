@@ -25,17 +25,22 @@ class ProfileRemoteDataSource {
   }
 
   Future<List<dynamic>> getAddresses() async {
-    final response = await _dio.get('/customers/addresses');
+    final response = await _dio.get('/customers/me/addresses');
     return response.data['data'];
   }
 
   Future<Map<String, dynamic>> createAddress(Map<String, dynamic> data) async {
-    final response = await _dio.post('/customers/addresses', data: data);
+    final response = await _dio.post('/customers/me/addresses', data: data);
+    return response.data['data'];
+  }
+
+  Future<Map<String, dynamic>> updateAddress(String id, Map<String, dynamic> data) async {
+    final response = await _dio.patch('/customers/me/addresses/$id', data: data);
     return response.data['data'];
   }
 
   Future<void> deleteAddress(String id) async {
-    await _dio.delete('/customers/addresses/$id');
+    await _dio.delete('/customers/me/addresses/$id');
   }
 
   Future<Map<String, dynamic>> uploadAvatar(String filePath) async {

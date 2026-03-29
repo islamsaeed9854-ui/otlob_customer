@@ -10,7 +10,7 @@ class UserModel extends User {
     required super.name,
     required super.email,
     super.phone,
-    super.profileImage,
+    @JsonKey(name: 'avatar') super.avatar,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) => _$UserModelFromJson(json);

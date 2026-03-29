@@ -62,6 +62,9 @@ class AuthRepositoryImpl implements AuthRepository {
       if (userModel.phone != null) {
         await tokenService.saveUserPhone(userModel.phone!);
       }
+      if (userModel.avatar != null) {
+        await tokenService.saveUserAvatar(userModel.avatar!);
+      }
 
       await ref
           .read(authControllerProvider.notifier)

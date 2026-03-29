@@ -147,13 +147,18 @@ class Profile extends _$Profile {
   }
 
   Future<void> addAddress(Map<String, dynamic> addressData) async {
-    final repository = ref.read(profileRepositoryProvider);
-    final result = await repository.createAddress(addressData);
-    
-    result.fold(
-      (address) => state = state.copyWith(addresses: [...state.addresses, address]),
-      (failure) => throw Exception(failure.message),
-    );
+    try {
+      final repository = ref.read(profileRepositoryProvider);
+      final result = await repository.createAddress(addressData);
+      
+      result.fold(
+        (address) => state = state.copyWith(addresses: [...state.addresses, address]),
+        (failure) => throw Exception(failure.message),
+      );
+    } catch (e) {
+      print('Add Address Error: $e');
+      rethrow;
+    }
   }
 
   Future<void> removeAddress(String id) async {
