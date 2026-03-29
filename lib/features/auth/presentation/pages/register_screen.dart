@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 import '../providers/register_controller.dart';
 import '../../../../core/router/route_paths.dart';
@@ -18,6 +19,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  PhoneNumber _phoneNumber = PhoneNumber(isoCode: 'EG'); // Default to Egypt
+  bool _isPhoneValid = false;
 
   @override
   void dispose() {
@@ -30,15 +33,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      ref
-          .read(registerControllerProvider.notifier)
+      ref.read(registerControllerProvider.notifier)
           .register(
             name: _nameController.text.trim(),
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
-            phone: _phoneController.text.trim().isEmpty
-                ? null
-                : _phoneController.text.trim(),
+            phone: _isPhoneValid ? _phoneNumber.phoneNumber : null,
           );
     }
   }
@@ -113,13 +113,49 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       : null,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number (Optional)',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).inputDecorationTheme.fillColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey.shade300,
+                    ),
+                  ),
+                  child: IntlPhoneNumberInput(
+                    onInputChanged: (PhoneNumber number) {
+                      _phoneNumber = number;
+                    },
+                    onInputValidated: (bool value) {
+                      setState(() {
+                        _isPhoneValid = value;
+                      });
+                    },
+                    selectorConfig: const SelectorConfig(
+                      selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+                      useEmoji: true,
+                    ),
+                    ignoreBlank: true,
+                    autoValidateMode: AutovalidateMode.onUserInteraction,
+                    selectorTextStyle: const TextStyle(color: Colors.black),
+                    textFieldController: _phoneController,
+                    formatInput: true,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      signed: true,
+                      decimal: true,
+                    ),
+                    inputDecoration: InputDecoration(
+                      labelText: 'Phone Number (Optional)',
+                      hintText: 'Enter phone number',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                      fillColor: Colors.transparent, // Handled by container
+                    ),
+                    onSaved: (PhoneNumber number) {
+                      _phoneNumber = number;
+                    },
                   ),
                 ),
                 const SizedBox(height: 16),
