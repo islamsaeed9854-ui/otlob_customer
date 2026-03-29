@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 
 import '../../../../core/theme/app_colors.dart';
@@ -220,89 +219,40 @@ class ProfileScreen extends ConsumerWidget {
     final emailCtrl = TextEditingController(text: profileState.email);
     final phoneCtrl = TextEditingController(text: profileState.phone);
 
-    PhoneNumber initialNumber = PhoneNumber(isoCode: 'EG');
-    bool isPhoneValid = true;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(s.editProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 20),
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name', prefixIcon: Icon(Icons.person))),
-                const SizedBox(height: 12),
-                TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email))),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).inputDecorationTheme.fillColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey.shade300,
-                    ),
-                  ),
-                  child: IntlPhoneNumberInput(
-                    onInputChanged: (PhoneNumber number) {
-                      initialNumber = number;
-                    },
-                    onInputValidated: (bool value) {
-                      setModalState(() {
-                        isPhoneValid = value;
-                      });
-                    },
-                    selectorConfig: const SelectorConfig(
-                      selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
-                      useEmoji: true,
-                    ),
-                    ignoreBlank: true,
-                    autoValidateMode: AutovalidateMode.onUserInteraction,
-                    selectorTextStyle: const TextStyle(color: Colors.black),
-                    initialValue: PhoneNumber(phoneNumber: profileState.phone, isoCode: 'EG'),
-                    textFieldController: phoneCtrl,
-                    formatInput: true,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      signed: true,
-                      decimal: true,
-                    ),
-                    inputDecoration: const InputDecoration(
-                      labelText: 'Phone',
-                      hintText: 'Enter phone number',
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      prefixIcon: Icon(Icons.phone),
-                      fillColor: Colors.transparent,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: !isPhoneValid ? null : () async {
-                      await ref.read(profileProvider.notifier).updateProfileData(
-                        name: nameCtrl.text.trim(),
-                        email: emailCtrl.text.trim(),
-                        phone: initialNumber.phoneNumber ?? phoneCtrl.text.trim(),
-                      );
-                      if (context.mounted) Navigator.pop(ctx);
-                    },
-                    child: const Text('Save Changes'),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(s.editProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 20),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name', prefixIcon: Icon(Icons.person))),
+            const SizedBox(height: 12),
+            TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email))),
+            const SizedBox(height: 12),
+            TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone', prefixIcon: Icon(Icons.phone))),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await ref.read(profileProvider.notifier).updateProfileData(
+                    name: nameCtrl.text.trim(),
+                    email: emailCtrl.text.trim(),
+                    phone: phoneCtrl.text.trim(),
+                  );
+                  if (context.mounted) Navigator.pop(ctx);
+                },
+                child: const Text('Save Changes'),
+              ),
             ),
-          );
-        }
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
