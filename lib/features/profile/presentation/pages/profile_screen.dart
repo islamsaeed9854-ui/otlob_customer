@@ -241,7 +241,7 @@ class ProfileScreen extends ConsumerWidget {
                 TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email))),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
                     color: Theme.of(context).inputDecorationTheme.fillColor,
                     borderRadius: BorderRadius.circular(12),
@@ -259,16 +259,13 @@ class ProfileScreen extends ConsumerWidget {
                       });
                     },
                     selectorConfig: const SelectorConfig(
-                      selectorType: PhoneInputSelectorType.DROPDOWN,
+                      selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
                       useEmoji: true,
-                      setSelectorButtonAsPrefixIcon: true,
                     ),
                     ignoreBlank: true,
                     autoValidateMode: AutovalidateMode.onUserInteraction,
                     selectorTextStyle: const TextStyle(color: Colors.black),
-                    initialValue: profileState.phone.isEmpty 
-                        ? PhoneNumber(isoCode: 'EG') 
-                        : PhoneNumber(phoneNumber: profileState.phone, isoCode: 'EG'),
+                    initialValue: PhoneNumber(phoneNumber: profileState.phone, isoCode: 'EG'),
                     textFieldController: phoneCtrl,
                     formatInput: true,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -278,12 +275,10 @@ class ProfileScreen extends ConsumerWidget {
                     inputDecoration: const InputDecoration(
                       labelText: 'Phone',
                       hintText: 'Enter phone number',
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 8),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
-                      prefixIcon: null,
+                      prefixIcon: Icon(Icons.phone),
                       fillColor: Colors.transparent,
                     ),
                   ),

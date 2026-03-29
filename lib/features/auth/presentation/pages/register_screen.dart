@@ -114,7 +114,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
                     color: Theme.of(context).inputDecorationTheme.fillColor,
                     borderRadius: BorderRadius.circular(12),
@@ -132,14 +132,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       });
                     },
                     selectorConfig: const SelectorConfig(
-                      selectorType: PhoneInputSelectorType.DROPDOWN,
+                      selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
                       useEmoji: true,
-                      setSelectorButtonAsPrefixIcon: true,
                     ),
                     ignoreBlank: true,
                     autoValidateMode: AutovalidateMode.onUserInteraction,
                     selectorTextStyle: const TextStyle(color: Colors.black),
-                    initialValue: _phoneNumber,
                     textFieldController: _phoneController,
                     formatInput: true,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -149,12 +147,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     inputDecoration: InputDecoration(
                       labelText: 'Phone Number (Optional)',
                       hintText: 'Enter phone number',
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
-                      prefixIcon: null,
+                      prefixIcon: const Icon(Icons.phone_outlined),
                       fillColor: Colors.transparent, // Handled by container
                     ),
                     onSaved: (PhoneNumber number) {
