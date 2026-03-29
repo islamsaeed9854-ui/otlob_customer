@@ -249,7 +249,7 @@ class ProfileScreen extends ConsumerWidget {
                       color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey.shade300,
                     ),
                   ),
-                  child: InternationalPhoneNumberInput(
+                  child: IntlPhoneNumberInput(
                     onInputChanged: (PhoneNumber number) {
                       initialNumber = number;
                     },
