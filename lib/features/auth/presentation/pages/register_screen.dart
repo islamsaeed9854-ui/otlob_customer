@@ -30,12 +30,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
-      ref.read(registerControllerProvider.notifier)
+      ref
+          .read(registerControllerProvider.notifier)
           .register(
             name: _nameController.text.trim(),
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
+<<<<<<< HEAD
             phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+=======
+            phone: _phoneController.text.trim().isEmpty
+                ? null
+                : _phoneController.text.trim(),
+>>>>>>> ae7f992a6509d2aaff6dae20deded5dffd43d698
           );
     }
   }

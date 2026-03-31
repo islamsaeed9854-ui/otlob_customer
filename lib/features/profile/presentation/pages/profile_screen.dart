@@ -347,11 +347,15 @@ class ProfileScreen extends ConsumerWidget {
     final emailCtrl = TextEditingController(text: profileState.email);
     final phoneCtrl = TextEditingController(text: profileState.phone);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> ae7f992a6509d2aaff6dae20deded5dffd43d698
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+<<<<<<< HEAD
       builder: (ctx) => StatefulBuilder(
         builder: (context, setModalState) {
           return Padding(
@@ -420,9 +424,38 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
               ],
+=======
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(s.editProfile, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 20),
+            TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'Name', prefixIcon: Icon(Icons.person))),
+            const SizedBox(height: 12),
+            TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email))),
+            const SizedBox(height: 12),
+            TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'Phone', prefixIcon: Icon(Icons.phone))),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  await ref.read(profileProvider.notifier).updateProfileData(
+                    name: nameCtrl.text.trim(),
+                    email: emailCtrl.text.trim(),
+                    phone: phoneCtrl.text.trim(),
+                  );
+                  if (context.mounted) Navigator.pop(ctx);
+                },
+                child: const Text('Save Changes'),
+              ),
+>>>>>>> ae7f992a6509d2aaff6dae20deded5dffd43d698
             ),
-          );
-        }
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
