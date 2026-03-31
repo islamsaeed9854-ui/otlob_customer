@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
@@ -148,3 +149,7 @@ class TokenService {
     return true;
   }
 }
+
+final accessTokenProvider = FutureProvider<String?>((ref) async {
+  return ref.watch(tokenServiceProvider).getAccessToken();
+});

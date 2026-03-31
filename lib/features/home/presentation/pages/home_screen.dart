@@ -23,7 +23,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   static const _mainCategoryKeys = [
     {'key': 'all', 'icon': Icons.grid_view_rounded},
     {'key': 'restaurant', 'icon': Icons.restaurant_rounded},
-    {'key': 'pharmacy', 'icon': Icons.local_pharmacy_rounded},
+    {'key': 'pharmacy', 'icon': Icons.healing_rounded},
     {'key': 'supermarket', 'icon': Icons.shopping_bag_rounded},
   ];
   String _selectedType = 'all';

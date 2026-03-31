@@ -242,7 +242,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
   Widget _buildPharmacyCategories(bool isArabic, bool isDark) {
     final categories = [
       {'id': 'all', 'label': isArabic ? 'الكل' : 'All', 'icon': Icons.grid_view_rounded},
-      {'id': 'medicines', 'label': isArabic ? 'أدوية' : 'Medicines', 'icon': Icons.medication_rounded},
+      {'id': 'medicines', 'label': isArabic ? 'أدوية' : 'Medicines', 'icon': Icons.healing_rounded},
       {'id': 'cosmetics', 'label': isArabic ? 'مستحضرات تجميل' : 'Cosmetics', 'icon': Icons.face_retouching_natural_rounded},
     ];
 
