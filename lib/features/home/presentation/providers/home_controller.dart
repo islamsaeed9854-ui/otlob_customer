@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/network/network_providers.dart';
 import 'home_state.dart';
 
 part 'home_controller.g.dart';
@@ -11,52 +12,41 @@ class HomeController extends _$HomeController {
   }
 
   Future<HomeData> loadDashboardData() async {
-    // Mock data for UI development
-    await Future.delayed(const Duration(seconds: 1));
+    final dio = ref.read(dioProvider);
 
-    return HomeData(
-      categories: [
-        {'id': 1, 'name': 'All', 'type': 'all'},
-        {'id': 2, 'name': 'Restaurant', 'type': 'restaurant'},
-        {'id': 3, 'name': 'Pharmacy', 'type': 'pharmacy'},
-        {'id': 4, 'name': 'Supermarket', 'type': 'supermarket'},
-      ],
-      products: [
-        {
-          'id': 'v1',
-          'name': 'Burger King',
-          'vendor': 'Fast Food • Burgers',
-          'rating': 4.5,
-          'deliveryTime': '20-30 دقيقة',
-          'deliveryFee': '15 ج رسوم توصيل',
-          'image': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop',
-          'type': 'restaurant',
-          'tag': 'Best Seller',
-        },
-        {
-          'id': 'v2',
-          'name': 'Seif Pharmacy',
-          'vendor': 'Healthcare • Pharmacy',
-          'rating': 4.8,
-          'deliveryTime': '15-20 دقيقة',
-          'deliveryFee': '10 ج رسوم توصيل',
-          'image': 'https://loremflickr.com/600/400/pharmacy?lock=1',
-          'type': 'pharmacy',
-          'tag': 'Premium',
-        },
-        {
-          'id': 'v3',
-          'name': 'Carrefour',
-          'vendor': 'Groceries • Supermarket',
-          'rating': 4.2,
-          'deliveryTime': '30-45 دقيقة',
-          'deliveryFee': '20 ج رسوم توصيل',
-          'image': 'https://loremflickr.com/600/400/supermarket?lock=2',
-          'type': 'supermarket',
-          'tag': 'Top Rated',
-        },
-      ],
-      activeOrder: null,
-    );
+    try {
+      // Parallel fetch for better performance
+      final results = await Future.wait([
+        dio.get('/vendors/verticals'),
+        dio.get('/vendors'),
+      ]);
+
+      final verticalsData = results[0].data as List<dynamic>;
+      final vendorsResponse = results[1].data as Map<String, dynamic>;
+      final vendorsData = vendorsResponse['vendors'] as List<dynamic>;
+
+      // Map verticals to categories
+      final categories = verticalsData.map((v) => {
+        'id': v['id'],
+        'name': v['name'],
+        'type': v['slug'],
+      }).toList();
+
+      // Add "All" category at the beginning
+      categories.insert(0, {'id': 'all', 'name': 'All', 'type': 'all'});
+
+      // Map vendors (app calls them products in the HomeData model)
+      final vendors = vendorsData.map((v) => Map<String, dynamic>.from(v)).toList();
+
+      return HomeData(
+        categories: categories,
+        products: vendors,
+        activeOrder: null,
+      );
+    } catch (e) {
+      // Fallback to empty lists or rethrow for error state
+      print('Error loading dashboard data: $e');
+      rethrow;
+    }
   }
 }
