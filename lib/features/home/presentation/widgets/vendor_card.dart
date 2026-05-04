@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
@@ -69,7 +70,7 @@ class VendorCard extends ConsumerWidget {
                 child: (vendor['image']?.toString().isEmpty ?? true)
                     ? Container(height: 160, color: Theme.of(context).canvasColor, child: const Icon(Icons.storefront, size: 40, color: Colors.grey))
                     : CachedNetworkImage(
-                        imageUrl: vendor['image'] as String,
+                        imageUrl: _formatImageUrl(vendor['image'] as String?),
                         height: 160, width: double.infinity, fit: BoxFit.cover,
                         placeholder: (c, u) => Container(height: 160, color: Theme.of(context).canvasColor),
                         errorWidget: (c, u, e) => Container(height: 160, color: Theme.of(context).canvasColor, child: const Icon(Icons.storefront, size: 40, color: Colors.grey)),
@@ -127,5 +128,12 @@ class VendorCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _formatImageUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url;
+    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
+    return '$baseUrl$url';
   }
 }

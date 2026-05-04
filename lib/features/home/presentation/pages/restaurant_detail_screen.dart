@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/l10n/app_strings.dart';
 import '../../../cart/presentation/providers/cart_controller.dart';
+import '../providers/vendor_detail_controller.dart';
 
 class RestaurantDetailScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic> restaurant;
@@ -26,216 +26,246 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cartState = ref.watch(cartProvider);
     
-    final isPharmacy = widget.restaurant['type'] == 'pharmacy';
-    final allMenu = (widget.restaurant['menu'] as List<dynamic>?) ?? [];
-    
-    final filteredMenu = _selectedCategory == 'all' 
-        ? allMenu 
-        : allMenu.where((item) => (item as Map<String, dynamic>)['category'] == _selectedCategory).toList();
+    final vendorId = widget.restaurant['id']?.toString() ?? '';
+    final detailAsync = ref.watch(vendorDetailControllerProvider(vendorId));
 
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 240,
-            floating: false,
-            pinned: true,
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            elevation: 0,
-            leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(6),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
-                ),
-                child: const Icon(Icons.arrow_back, size: 20, color: AppColors.primary),
-              ),
-              onPressed: () => context.pop(),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: (widget.restaurant['image']?.toString().isEmpty ?? true)
-                  ? Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey))
-                  : CachedNetworkImage(
-                      imageUrl: widget.restaurant['image'] as String,
-                      fit: BoxFit.cover,
-                      placeholder: (c, u) => Container(color: Colors.grey.shade200),
-                      errorWidget: (c, u, e) => Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey)),
+    return detailAsync.when(
+      data: (fullVendor) {
+        final isPharmacy = fullVendor['type'] == 'pharmacy';
+        final allMenu = (fullVendor['menu'] as List<dynamic>?) ?? [];
+        
+        final filteredMenu = _selectedCategory == 'all' 
+            ? allMenu 
+            : allMenu.where((item) => (item as Map<String, dynamic>)['category'] == _selectedCategory).toList();
+
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 240,
+                floating: false,
+                pinned: true,
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                elevation: 0,
+                leading: IconButton(
+                  icon: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
                     ),
-            ),
-          ),
+                    child: const Icon(Icons.arrow_back, size: 20, color: AppColors.primary),
+                  ),
+                  onPressed: () => context.pop(),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: (fullVendor['image']?.toString().isEmpty ?? true)
+                      ? Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey))
+                      : CachedNetworkImage(
+                          imageUrl: fullVendor['image'] as String,
+                          fit: BoxFit.cover,
+                          placeholder: (c, u) => Container(color: Colors.grey.shade200),
+                          errorWidget: (c, u, e) => Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey)),
+                        ),
+                ),
+              ),
 
-          SliverToBoxAdapter(
-            child: Container(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              padding: const EdgeInsets.all(20),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Expanded(child: Text(widget.restaurant['name'] as String, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
-                  Row(children: [
-                    const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
-                    const SizedBox(width: 4),
-                    Text('${widget.restaurant['rating']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              SliverToBoxAdapter(
+                child: Container(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  padding: const EdgeInsets.all(20),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                      Expanded(child: Text(fullVendor['name'] as String, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                      Row(children: [
+                        const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                        const SizedBox(width: 4),
+                        Text('${fullVendor['rating']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      ]),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(fullVendor['vendor'] as String, style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                    const SizedBox(height: 12),
+                    Row(children: [
+                      _chip(Icons.access_time_rounded, fullVendor['deliveryTime'] as String),
+                      const SizedBox(width: 12),
+                      _chip(Icons.delivery_dining, fullVendor['deliveryFee'] as String),
+                    ]),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      height: 42,
+                      width: double.infinity,
+                      child: Builder(builder: (ctx) {
+                        final btnColor = AppColors.primary;
+                        return OutlinedButton.icon(
+                          onPressed: () => context.push('/chat/vendor/${fullVendor['id']}', extra: {'title': fullVendor['name']}),
+                          icon: Icon(Icons.chat_bubble_outline, size: 16, color: btnColor),
+                          label: Text(
+                            s.chatWithVendor,
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: btnColor),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: btnColor, width: 1.5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            backgroundColor: btnColor.withOpacity(0.08),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          s.chatWithVendorSubtext,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ]),
-                ]),
-                const SizedBox(height: 4),
-                Text(widget.restaurant['vendor'] as String, style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
-                const SizedBox(height: 12),
-                Row(children: [
-                  _chip(Icons.access_time_rounded, widget.restaurant['deliveryTime'] as String),
-                  const SizedBox(width: 12),
-                  _chip(Icons.delivery_dining, widget.restaurant['deliveryFee'] as String),
-                ]),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 42,
-                  width: double.infinity,
-                  child: Builder(builder: (ctx) {
-                    final btnColor = AppColors.primary;
-                    return OutlinedButton.icon(
-                      onPressed: () => context.push('/chat/vendor/${widget.restaurant['id']}', extra: {'title': widget.restaurant['name']}),
-                      icon: Icon(Icons.chat_bubble_outline, size: 16, color: btnColor),
-                      label: Text(
-                        s.chatWithVendor,
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: btnColor),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: btnColor, width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        backgroundColor: btnColor.withOpacity(0.08),
-                      ),
-                    );
-                  }),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.info_outline_rounded, size: 14, color: AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text(
-                      s.chatWithVendorSubtext,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? Colors.white70 : Colors.black87,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ]),
-            ),
-          ),
-
-          if (isPharmacy)
-            SliverToBoxAdapter(
-              child: _buildPharmacyCategories(s.isArabic, isDark),
-            ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: Text(
-                isPharmacy ? (s.isArabic ? 'المنتجات' : 'Products') : s.menu, 
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
               ),
-            ),
-          ),
 
-          if (filteredMenu.isEmpty)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(40.0),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-                      Text(
-                        s.isArabic ? 'لا توجد منتجات في هذا القسم حالياً' : 'No items in this category currently',
-                        style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.w600),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+              if (isPharmacy)
+                SliverToBoxAdapter(
+                  child: _buildPharmacyCategories(s.isArabic, isDark),
+                ),
+
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Text(
+                    isPharmacy ? (s.isArabic ? 'المنتجات' : 'Products') : s.menu, 
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
                   ),
                 ),
               ),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s),
-                  childCount: filteredMenu.length,
-                ),
-              ),
-            ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
-        ],
+              if (filteredMenu.isEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(40.0),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          Text(
+                            s.isArabic ? 'لا توجد منتجات في هذا القسم حالياً' : 'No items in this category currently',
+                            style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.w600),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s),
+                      childCount: filteredMenu.length,
+                    ),
+                  ),
+                ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 120)),
+            ],
+          ),
+          
+          bottomNavigationBar: cartState.totalItems > 0
+              ? Container(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 12,
+                    bottom: 12 + MediaQuery.of(context).padding.bottom,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))
+                    ],
+                  ),
+                  child: ElevatedButton(
+                    onPressed: () => context.push('/cart'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${cartState.totalItems}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                              ),
+                            ),
+                            Text(
+                              '${cartState.getVendorSubtotal(fullVendor['id'] ?? '').toStringAsFixed(0)} EGP',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            Text(s.viewCart, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
+      loading: () => Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
       ),
-      
-      bottomNavigationBar: cartState.totalItems > 0
-          ? Container(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 12,
-                bottom: 12 + MediaQuery.of(context).padding.bottom,
+      error: (err, stack) => Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('Error: ${err.toString()}'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.refresh(vendorDetailControllerProvider(vendorId)),
+                child: const Text('Retry'),
               ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))
-                ],
-              ),
-              child: ElevatedButton(
-                onPressed: () => context.push('/cart'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${cartState.totalItems}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
-                          ),
-                        ),
-                        Text(
-                          '${cartState.getVendorSubtotal(widget.restaurant['id'] ?? '').toStringAsFixed(0)} EGP',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 20),
-                        const SizedBox(width: 8),
-                        Text(s.viewCart, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.white)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : null,
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -290,7 +320,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
           borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
           child: (item['image']?.toString().isEmpty ?? true)
               ? Container(width: 100, height: 110, color: Colors.grey.shade200, child: const Icon(Icons.fastfood, color: Colors.grey))
-              : CachedNetworkImage(imageUrl: item['image'] as String, width: 100, height: 110, fit: BoxFit.cover),
+              : CachedNetworkImage(imageUrl: _formatImageUrl(item['image'] as String?), width: 100, height: 110, fit: BoxFit.cover),
         ),
         Expanded(child: Padding(
           padding: const EdgeInsets.all(12),
@@ -343,5 +373,12 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
       const SizedBox(width: 4),
       Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
     ]);
+  }
+
+  String _formatImageUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url;
+    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
+    return '$baseUrl$url';
   }
 }

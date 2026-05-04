@@ -17,7 +17,7 @@ class HomeController extends _$HomeController {
     try {
       // Parallel fetch for better performance
       final results = await Future.wait([
-        dio.get('/vendors/verticals'),
+        dio.get('/vendor-verticals'),
         dio.get('/vendors'),
       ]);
 
