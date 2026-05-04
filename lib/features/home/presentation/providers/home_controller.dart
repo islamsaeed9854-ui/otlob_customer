@@ -15,15 +15,33 @@ class HomeController extends _$HomeController {
     final dio = ref.read(dioProvider);
 
     try {
-      // Parallel fetch for better performance
       final results = await Future.wait([
         dio.get('/vendor-verticals'),
         dio.get('/vendors'),
       ]);
 
-      final verticalsData = results[0].data as List<dynamic>;
-      final vendorsResponse = results[1].data as Map<String, dynamic>;
-      final vendorsData = vendorsResponse['vendors'] as List<dynamic>;
+      final resp0 = results[0].data;
+      final resp1 = results[1].data;
+
+      List<dynamic> verticalsData = [];
+      if (resp0 is Map<String, dynamic>) {
+        verticalsData = resp0['data'] as List<dynamic>? ?? [];
+      } else if (resp0 is List) {
+        verticalsData = resp0;
+      }
+
+      Map<String, dynamic> vendorsMap = {};
+      if (resp1 is Map<String, dynamic>) {
+        final dataField = resp1['data'];
+        if (dataField is Map<String, dynamic>) {
+          vendorsMap = dataField;
+        } else if (dataField is List) {
+           // Handle case where 'data' is a list directly
+           vendorsMap = {'vendors': dataField};
+        }
+      }
+
+      final vendorsData = vendorsMap['vendors'] as List<dynamic>? ?? [];
 
       // Map verticals to categories
       final categories = verticalsData.map((v) => {
@@ -35,17 +53,17 @@ class HomeController extends _$HomeController {
       // Add "All" category at the beginning
       categories.insert(0, {'id': 'all', 'name': 'All', 'type': 'all'});
 
-      // Map vendors (app calls them products in the HomeData model)
-      final vendors = vendorsData.map((v) => Map<String, dynamic>.from(v)).toList();
+      // Map vendors
+      final vendors = vendorsData.map((v) => Map<String, dynamic>.from(v as Map)).toList();
 
       return HomeData(
         categories: categories,
         products: vendors,
         activeOrder: null,
       );
-    } catch (e) {
-      // Fallback to empty lists or rethrow for error state
+    } catch (e, stack) {
       print('Error loading dashboard data: $e');
+      print('Stack trace: $stack');
       rethrow;
     }
   }

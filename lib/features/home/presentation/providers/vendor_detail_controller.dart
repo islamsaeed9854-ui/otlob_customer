@@ -13,6 +13,7 @@ class VendorDetailController extends _$VendorDetailController {
   Future<Map<String, dynamic>> fetchVendorDetails(String vendorId) async {
     final dio = ref.read(dioProvider);
     final response = await dio.get('/vendors/$vendorId');
-    return response.data as Map<String, dynamic>;
+    final responseData = response.data as Map<String, dynamic>;
+    return responseData['data'] as Map<String, dynamic>;
   }
 }
