@@ -154,7 +154,8 @@ GoRouter appRouter(Ref ref) {
         path: '/restaurant',
         name: 'restaurant',
         builder: (context, state) {
-          final restaurant = state.extra as Map<String, dynamic>;
+          final restaurant = state.extra as Map<String, dynamic>?;
+          if (restaurant == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
           return RestaurantDetailScreen(restaurant: restaurant);
         },
       ),

@@ -38,8 +38,25 @@ class OrdersScreen extends ConsumerWidget {
   }
 
   Widget _buildOrderCard(BuildContext context, Map<String, dynamic> order, AppStrings s) {
-    final items = order['items'] as List<dynamic>;
-    final total = items.fold(0.0, (sum, i) => sum + (i['price'] as num) * (i['quantity'] as int)) + (order['deliveryFee'] as num);
+    final isCustom = order['type'] == 'custom_delivery';
+    final items = (order['items'] as List<dynamic>?) ?? [];
+    
+    double total = 0;
+    if (isCustom) {
+      total = (order['totalFee'] as num?)?.toDouble() ?? 0.0;
+    } else {
+      double subtotal = 0;
+      for (var i in items) {
+        final p = i['price'];
+        final price = p is num ? p : (num.tryParse(p?.toString() ?? '0') ?? 0);
+        final q = i['quantity'];
+        final quantity = q is int ? q : (int.tryParse(q?.toString() ?? '1') ?? 1);
+        subtotal += price * quantity;
+      }
+      final df = order['deliveryFee'];
+      final deliveryFee = df is num ? df : (num.tryParse(df?.toString() ?? '0') ?? 0);
+      total = subtotal + deliveryFee;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -51,7 +68,7 @@ class OrdersScreen extends ConsumerWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Order #${order['id'].toString().split('-').last}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(isCustom ? (s.isArabic ? 'طلب خاص' : 'Custom Delivery') : 'Order #${order['id'].toString().split('-').last}', style: const TextStyle(fontWeight: FontWeight.bold)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
@@ -59,10 +76,15 @@ class OrdersScreen extends ConsumerWidget {
           ),
         ]),
         const Divider(height: 24),
-        ...items.map((i) => Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Text('${i['quantity']}x ${i['name']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-        )),
+        if (isCustom) ...[
+          Text('${s.pickupLocation}: ${order['pickup']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          const SizedBox(height: 4),
+          Text('${s.dropoffLocation}: ${order['dropoff']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+        ] else
+          ...items.map((i) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text('${i['quantity']}x ${i['name']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          )),
         const Divider(height: 24),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text(s.total, style: const TextStyle(fontWeight: FontWeight.bold)),

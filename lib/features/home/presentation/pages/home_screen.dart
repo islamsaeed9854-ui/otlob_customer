@@ -20,12 +20,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  static const _mainCategoryKeys = [
-    {'key': 'all', 'icon': Icons.grid_view_rounded},
-    {'key': 'restaurant', 'icon': Icons.restaurant_rounded},
-    {'key': 'pharmacy', 'icon': Icons.healing_rounded},
-    {'key': 'supermarket', 'icon': Icons.shopping_bag_rounded},
-  ];
   String _selectedType = 'all';
 
   late PageController _promoPageController;
@@ -123,7 +117,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   _buildHeader(context),
                   _buildSearch(),
-                  _buildMainCategoryTabs(),
+                  _buildMainCategoryTabs(data),
                 ],
               ),
             );
@@ -131,8 +125,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
         SliverToBoxAdapter(child: _buildCustomCourierBanner()),
-        SliverToBoxAdapter(child: _buildPromoBanners()),
-        SliverToBoxAdapter(child: _buildSectionTitle()),
+        SliverToBoxAdapter(child: _buildPromoBanners(data)),
+        SliverToBoxAdapter(child: _buildSectionTitle(data)),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: _buildVendorGrid(context, filtered),
@@ -266,14 +260,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildMainCategoryTabs() {
+  Widget _buildMainCategoryTabs(HomeData data) {
     final s = AppStrings.of(context);
-    final labels = [
-      AppStrings.of(context).isArabic ? 'الكل' : 'All',
-      s.restaurants,
-      s.pharmacies,
-      s.supermarkets
-    ];
+    final categories = data.categories;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
@@ -283,9 +272,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
-          children: List.generate(_mainCategoryKeys.length, (i) {
-            final cat = _mainCategoryKeys[i];
-            final isSelected = _selectedType == cat['key'];
+          children: List.generate(categories.length, (i) {
+            final cat = categories[i];
+            final isSelected = _selectedType == cat['type'];
+            final String name = (s.isArabic && cat['nameAr'] != null)
+                ? cat['nameAr']
+                : cat['name'];
 
             return Container(
               width: 92,
@@ -325,7 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 borderRadius: BorderRadius.circular(18),
                 child: InkWell(
                   onTap: () => setState(() {
-                    _selectedType = cat['key'] as String;
+                    _selectedType = cat['type'] as String;
                     _searchController.clear();
                   }),
                   borderRadius: BorderRadius.circular(18),
@@ -342,17 +334,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 : AppColors.primary.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            cat['icon'] as IconData,
-                            color: isSelected ? Colors.white : AppColors.primary,
-                            size: 24,
-                          ),
+                          child: _buildCategoryIcon(cat, isSelected),
                         ),
                         const SizedBox(height: 10),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            labels[i],
+                            name,
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
@@ -374,6 +362,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCategoryIcon(Map<String, dynamic> cat, bool isSelected) {
+    final color = isSelected ? Colors.white : AppColors.primary;
+    
+    if (cat['type'] == 'all') {
+      return Icon(Icons.grid_view_rounded, color: color, size: 24);
+    }
+    
+    if (cat['iconUrl'] != null && cat['iconUrl'].toString().isNotEmpty) {
+      final url = cat['iconUrl'].toString();
+      final fullUrl = url.startsWith('http') ? url : 'https://api.otlob-egy.online$url';
+      
+      // Debug print to check the URL
+      print('Loading Category Icon: $fullUrl');
+
+      return SizedBox(
+        width: 24,
+        height: 24,
+        child: Image.network(
+          fullUrl,
+          fit: BoxFit.contain,
+          // Removed color tinting to allow multi-color icons
+          errorBuilder: (context, error, stackTrace) {
+            print('Error loading category icon ($fullUrl): $error');
+            return _buildFallbackIcon(cat['type'], color);
+          },
+        ),
+      );
+    }
+    
+    return _buildFallbackIcon(cat['type'], color);
+  }
+
+  Widget _buildFallbackIcon(String type, Color color) {
+    IconData icon = Icons.category_rounded;
+    if (type.contains('restaurant')) icon = Icons.restaurant_rounded;
+    if (type.contains('pharmacy')) icon = Icons.healing_rounded;
+    if (type.contains('supermarket') || type.contains('market')) icon = Icons.shopping_bag_rounded;
+    
+    return Icon(icon, color: color, size: 24);
   }
 
   Widget _buildCustomCourierBanner() {
@@ -451,9 +480,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildPromoBanners() {
+  Widget _buildPromoBanners(HomeData data) {
     final s = AppStrings.of(context);
-    final banners = s.promoBanners;
+    final banners = data.promotions;
     if (banners.isEmpty) return const SizedBox.shrink();
 
     final palette = [
@@ -476,6 +505,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             final actualIndex = index % banners.length;
             final b = banners[actualIndex];
             final col = palette[actualIndex % palette.length];
+            
+            final title = (s.isArabic && b['titleAr'] != null) ? b['titleAr'] : b['title'];
+            final description = (s.isArabic && b['descriptionAr'] != null) ? b['descriptionAr'] : (b['description'] ?? '');
+            
+            final String imageUrl = b['imageUrl'] ?? '';
+            final String fullUrl = imageUrl.startsWith('http') ? imageUrl : 'https://api.otlob-egy.online$imageUrl';
 
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -485,12 +520,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     colors: [col, col.withOpacity(0.7)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight),
-                image: DecorationImage(
-                  image: NetworkImage(b[2]),
+                image: imageUrl.isNotEmpty ? DecorationImage(
+                  image: NetworkImage(fullUrl),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                      col.withOpacity(0.55), BlendMode.srcATop),
-                ),
+                      col.withOpacity(0.4), BlendMode.srcATop),
+                ) : null,
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -498,7 +533,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      Text(b[0],
+                      Text(title,
                           style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -506,11 +541,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               shadows: [
                                 Shadow(blurRadius: 4, color: Colors.black45)
                               ])),
-                      const SizedBox(height: 4),
-                      Text(b[1],
-                          style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 12)),
+                      if (description.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(description,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12)),
+                      ],
                     ]),
               ),
             );
@@ -520,15 +559,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildSectionTitle() {
+  Widget _buildSectionTitle(HomeData data) {
     final s = AppStrings.of(context);
-    final label = _selectedType == 'all'
-        ? (s.isArabic ? 'جميع المتاجر' : 'All Stores')
-        : _selectedType == 'restaurant'
-            ? s.nearbyRestaurants
-            : _selectedType == 'pharmacy'
-                ? s.availablePharm
-                : s.nearbySuper;
+    
+    String label = s.isArabic ? 'جميع المتاجر' : 'All Stores';
+    
+    if (_selectedType != 'all') {
+      try {
+        final selectedCat = data.categories.firstWhere((c) => c['type'] == _selectedType);
+        final String catName = (s.isArabic && selectedCat['nameAr'] != null)
+            ? selectedCat['nameAr']
+            : selectedCat['name'];
+        
+        label = s.isArabic ? 'متاجر $catName القريبة' : 'Nearby $catName';
+      } catch (_) {
+        // Fallback to a generic title if not found
+        label = s.isArabic ? 'المتاجر القريبة' : 'Nearby Stores';
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [

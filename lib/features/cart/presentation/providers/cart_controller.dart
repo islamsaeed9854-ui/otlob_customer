@@ -12,7 +12,8 @@ class CartItem {
   });
 
   double get totalPrice {
-    final price = product['price'] as num? ?? 0.0;
+    final p = product['price'];
+    final price = p is num ? p : (num.tryParse(p?.toString() ?? '0') ?? 0.0);
     return (price * quantity).toDouble();
   }
 
@@ -47,8 +48,9 @@ class CartState {
   }
 
   double getVendorSubtotal(String vendorId) {
-    if (!vendorBaskets.containsKey(vendorId)) return 0.0;
-    return vendorBaskets[vendorId]!.fold(
+    final basket = vendorBaskets[vendorId];
+    if (basket == null) return 0.0;
+    return basket.fold(
       0.0,
       (total, item) => total + item.totalPrice,
     );

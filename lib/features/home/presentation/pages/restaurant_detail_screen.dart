@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../../core/utils/image_utils.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
@@ -64,7 +65,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
                   background: (fullVendor['image']?.toString().isEmpty ?? true)
                       ? Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey))
                       : CachedNetworkImage(
-                          imageUrl: fullVendor['image'] as String,
+                          imageUrl: ImageUtils.formatImageUrl(fullVendor['image'] as String?),
                           fit: BoxFit.cover,
                           placeholder: (c, u) => Container(color: Colors.grey.shade200),
                           errorWidget: (c, u, e) => Container(color: Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey)),
@@ -89,9 +90,9 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
                     Text(fullVendor['vendor'] as String, style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
                     const SizedBox(height: 12),
                     Row(children: [
-                      _chip(Icons.access_time_rounded, fullVendor['deliveryTime'] as String),
+                      _chip(Icons.access_time_rounded, fullVendor['deliveryTime']?.toString() ?? ''),
                       const SizedBox(width: 12),
-                      _chip(Icons.delivery_dining, fullVendor['deliveryFee'] as String),
+                      _chip(Icons.delivery_dining, fullVendor['deliveryFee']?.toString() ?? ''),
                     ]),
                     const SizedBox(height: 16),
                     SizedBox(
@@ -320,7 +321,7 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
           borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
           child: (item['image']?.toString().isEmpty ?? true)
               ? Container(width: 100, height: 110, color: Colors.grey.shade200, child: const Icon(Icons.fastfood, color: Colors.grey))
-              : CachedNetworkImage(imageUrl: _formatImageUrl(item['image'] as String?), width: 100, height: 110, fit: BoxFit.cover),
+              : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl(item['image'] as String?), width: 100, height: 110, fit: BoxFit.cover),
         ),
         Expanded(child: Padding(
           padding: const EdgeInsets.all(12),
@@ -375,10 +376,5 @@ class _RestaurantDetailScreenState extends ConsumerState<RestaurantDetailScreen>
     ]);
   }
 
-  String _formatImageUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
-    if (url.startsWith('http')) return url;
-    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
-    return '$baseUrl$url';
-  }
+
 }

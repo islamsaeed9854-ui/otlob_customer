@@ -91,9 +91,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       );
     }
 
-    final vendorItems = cartState.vendorBaskets[widget.vendorId!]!;
-    final vendorName = vendorItems.first.product['vendorName'] as String? ?? 'Vendor';
-    final subtotal = cartState.getVendorSubtotal(widget.vendorId!);
+    final vendorItems = cartState.vendorBaskets[widget.vendorId ?? ''] ?? [];
+    final vendorName = vendorItems.isNotEmpty ? (vendorItems.first.product['vendorName'] as String? ?? 'Vendor') : 'Vendor';
+    final subtotal = cartState.getVendorSubtotal(widget.vendorId ?? '');
     final deliveryFee = subtotal > 200 ? 0.0 : 15.0;
     final total = subtotal + deliveryFee;
 

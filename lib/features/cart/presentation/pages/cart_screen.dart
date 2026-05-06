@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/utils/image_utils.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
@@ -52,7 +53,7 @@ class CartScreen extends ConsumerWidget {
               itemCount: cartState.vendorBaskets.length,
               itemBuilder: (context, index) {
                 final vendorId = cartState.vendorBaskets.keys.elementAt(index);
-                final vendorItems = cartState.vendorBaskets[vendorId]!;
+                final vendorItems = cartState.vendorBaskets[vendorId] ?? [];
                 return _buildVendorBasket(context, ref, vendorId, vendorItems, s);
               },
             ),
@@ -62,7 +63,7 @@ class CartScreen extends ConsumerWidget {
   Widget _buildVendorBasket(BuildContext context, WidgetRef ref, String vendorId, List<CartItem> items, AppStrings s) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final vendorName = items.first.product['vendorName'] as String? ?? 'Vendor';
+    final vendorName = items.isNotEmpty ? (items.first.product['vendorName'] as String? ?? 'Vendor') : 'Vendor';
     final subtotal = ref.read(cartProvider).getVendorSubtotal(vendorId);
     final delivery = subtotal > 200 ? 0.0 : 15.0;
     final total = subtotal + delivery;
@@ -102,26 +103,32 @@ class CartScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(s.total, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                    Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
-                  ],
-                ),
-                ElevatedButton(
-                  onPressed: () => context.push('/checkout', extra: vendorId),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: SizedBox(
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.total, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                        Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+                      ],
+                    ),
                   ),
-                  child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                ),
-              ],
+                  const SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () => context.push('/checkout', extra: vendorId),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -137,7 +144,7 @@ class CartScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(12),
           child: (item.product['image']?.toString().isEmpty ?? true)
               ? Container(height: 60, width: 60, color: Colors.grey.shade200, child: const Icon(Icons.fastfood, color: Colors.grey))
-              : CachedNetworkImage(imageUrl: item.product['image'] as String, height: 60, width: 60, fit: BoxFit.cover),
+              : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl(item.product['image'] as String?), height: 60, width: 60, fit: BoxFit.cover),
         ),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

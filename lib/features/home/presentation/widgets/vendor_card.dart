@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
@@ -41,7 +42,8 @@ class VendorCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tag = vendor['tag'] as String? ?? '';
     final favorites = ref.watch(favoritesProvider);
-    final isFav = favorites.contains(vendor['id'] as String);
+    final vendorId = vendor['id']?.toString() ?? '';
+    final isFav = favorites.contains(vendorId);
     final strings = AppStrings.of(context);
 
     return Container(
@@ -70,7 +72,7 @@ class VendorCard extends ConsumerWidget {
                 child: (vendor['image']?.toString().isEmpty ?? true)
                     ? Container(height: 160, color: Theme.of(context).canvasColor, child: const Icon(Icons.storefront, size: 40, color: Colors.grey))
                     : CachedNetworkImage(
-                        imageUrl: _formatImageUrl(vendor['image'] as String?),
+                        imageUrl: ImageUtils.formatImageUrl(vendor['image'] as String?),
                         height: 160, width: double.infinity, fit: BoxFit.cover,
                         placeholder: (c, u) => Container(height: 160, color: Theme.of(context).canvasColor),
                         errorWidget: (c, u, e) => Container(height: 160, color: Theme.of(context).canvasColor, child: const Icon(Icons.storefront, size: 40, color: Colors.grey)),
@@ -92,7 +94,7 @@ class VendorCard extends ConsumerWidget {
                   child: IconButton(
                     padding: EdgeInsets.zero,
                     icon: Icon(isFav ? Icons.favorite : Icons.favorite_border, color: isFav ? Colors.red : Colors.grey, size: 16),
-                    onPressed: () => ref.read(favoritesProvider.notifier).toggleFavorite(vendor['id'] as String),
+                    onPressed: () => ref.read(favoritesProvider.notifier).toggleFavorite(vendorId),
                   ),
                 ),
               ),
@@ -112,9 +114,9 @@ class VendorCard extends ConsumerWidget {
                 Text(vendor['vendor'] as String, style: TextStyle(color: Colors.grey.shade500, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 10),
                 Row(children: [
-                  _chip(Icons.access_time_rounded, vendor['deliveryTime'] as String),
+                  _chip(Icons.access_time_rounded, vendor['deliveryTime']?.toString() ?? ''),
                   const SizedBox(width: 8),
-                  Expanded(child: _chip(Icons.delivery_dining, vendor['deliveryFee'] as String)),
+                  Expanded(child: _chip(Icons.delivery_dining, vendor['deliveryFee']?.toString() ?? '')),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -130,10 +132,5 @@ class VendorCard extends ConsumerWidget {
     );
   }
 
-  String _formatImageUrl(String? url) {
-    if (url == null || url.isEmpty) return '';
-    if (url.startsWith('http')) return url;
-    final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000';
-    return '$baseUrl$url';
-  }
+
 }
