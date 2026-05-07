@@ -55,7 +55,7 @@ class HomeController extends _$HomeController {
       }).toList();
 
       // Add "All" category at the beginning
-      categories.insert(0, {'id': 'all', 'name': 'All', 'type': 'all'});
+      categories.insert(0, {'id': 'all', 'name': 'All', 'nameAr': 'الكل', 'type': 'all'});
 
       // Map vendors
       final vendors = vendorsData.map((v) => Map<String, dynamic>.from(v as Map)).toList();

@@ -79,13 +79,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildMessage(Message msg) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Align(
       alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: msg.isMe ? AppColors.primary : Colors.grey.shade200,
+          color: msg.isMe 
+              ? AppColors.primary 
+              : (isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade200),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -98,7 +101,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           children: [
             if (!msg.isMe)
               Text(msg.senderName ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-            Text(msg.content, style: TextStyle(color: msg.isMe ? Colors.white : Colors.black87)),
+            Text(msg.content, style: TextStyle(color: msg.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87))),
           ],
         ),
       ),
@@ -106,6 +109,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildInput() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -118,11 +122,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _controller,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
                 decoration: InputDecoration(
                   hintText: AppStrings.of(context).typeAMessage,
+                  hintStyle: TextStyle(color: Colors.grey.shade500),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
                   filled: true,
-                  fillColor: Colors.grey.shade100,
+                  fillColor: isDark ? const Color(0xFF383838) : Colors.grey.shade100,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
                 onSubmitted: (_) => _sendMessage(),

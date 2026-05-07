@@ -242,8 +242,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 children: [
                   Icon(Icons.notifications_none_rounded,
                       size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
-                  Positioned(
-                    right: 2,
+                  PositionedDirectional(
+                    end: 2,
                     top: 2,
                     child: Container(
                       width: 8,
@@ -685,9 +685,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: Stack(
                         children: [
                           if (linkedVendor != null)
-                            Positioned(
+                            PositionedDirectional(
                               top: 16,
-                              right: 16,
+                              end: 16,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
