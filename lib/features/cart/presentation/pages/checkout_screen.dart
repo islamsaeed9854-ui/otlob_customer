@@ -92,7 +92,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     }
 
     final vendorItems = cartState.vendorBaskets[widget.vendorId ?? ''] ?? [];
-    final vendorName = vendorItems.isNotEmpty ? (vendorItems.first.product['vendorName'] as String? ?? 'Vendor') : 'Vendor';
+    final vendorName = vendorItems.isNotEmpty ? (vendorItems.first.product['vendorName'] as String? ?? s.vendor) : s.vendor;
     final subtotal = cartState.getVendorSubtotal(widget.vendorId ?? '');
     final deliveryFee = subtotal > 200 ? 0.0 : 15.0;
     final total = subtotal + deliveryFee;
@@ -119,7 +119,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.location_on, color: AppColors.primary),
                     title: Text(s.locationName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: const Text('Cairo, Egypt', style: TextStyle(fontSize: 12)),
+                    subtitle: Text(s.defaultCity, style: const TextStyle(fontSize: 12)),
                   ),
                 ]),
                 const SizedBox(height: 16),

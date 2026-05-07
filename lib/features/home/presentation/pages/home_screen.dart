@@ -3,12 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../core/utils/image_utils.dart';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/providers/platform_settings_provider.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../providers/home_controller.dart';
 import '../providers/home_state.dart';
 import '../widgets/vendor_card.dart';
+import '../widgets/vendor_card.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -21,6 +29,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   String _selectedType = 'all';
+  bool _isCourierExpanded = false;
 
   late PageController _promoPageController;
   Timer? _promoTimer;
@@ -61,14 +70,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: homeState.when(
           data: (data) => RefreshIndicator(
             color: AppColors.primary,
-            onRefresh: () => ref.refresh(homeControllerProvider.future),
+            onRefresh: () async {
+              await ref.refresh(homeControllerProvider.future);
+              await ref.refresh(platformSettingsProvider.future);
+            },
             child: _buildBody(context, data),
           ),
           loading: () => _buildShimmer(),
           error: (error, _) => _buildError(error.toString()),
         ),
       ),
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: homeState.maybeWhen(
+        data: (data) => _buildBottomNav(context, data),
+        orElse: () => const SizedBox.shrink(),
+      ),
     );
   }
 
@@ -88,17 +103,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       physics: const BouncingScrollPhysics(),
       slivers: [
         SliverToBoxAdapter(
-          child: Container(
-            height: 160,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage('assets/home_cover.jpg'),
-                fit: BoxFit.cover,
-                colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.2), BlendMode.darken),
-              ),
-            ),
+          child: Consumer(
+            builder: (context, ref, child) {
+              final platformSettings = ref.watch(platformSettingsProvider).value;
+              final coverUrl = platformSettings?.homeCoverUrl;
+
+              return Container(
+                height: 160,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  image: coverUrl != null && coverUrl.isNotEmpty
+                      ? DecorationImage(
+                          image: CachedNetworkImageProvider(ImageUtils.formatImageUrl(coverUrl)),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                              Colors.black.withOpacity(0.2), BlendMode.darken),
+                        )
+                      : DecorationImage(
+                          image: const AssetImage('assets/home_cover.jpg'),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                              Colors.black.withOpacity(0.2), BlendMode.darken),
+                        ),
+                ),
+              );
+            },
           ),
         ),
         SliverToBoxAdapter(
@@ -316,27 +345,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 color: Colors.transparent,
                 borderRadius: BorderRadius.circular(18),
                 child: InkWell(
-                  onTap: () => setState(() {
-                    _selectedType = cat['type'] as String;
-                    _searchController.clear();
-                  }),
+                  onTap: () {
+                    context.push('/all-vendors', extra: cat['type'] as String);
+                  },
                   borderRadius: BorderRadius.circular(18),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: EdgeInsets.zero,
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? Colors.white.withOpacity(0.2)
                                 : AppColors.primary.withOpacity(0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: _buildCategoryIcon(cat, isSelected),
+                          child: ClipOval(
+                            child: _buildCategoryIcon(cat, isSelected, categories),
+                          ),
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 6),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
@@ -364,31 +394,67 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildCategoryIcon(Map<String, dynamic> cat, bool isSelected) {
+  Widget _buildCategoryIcon(Map<String, dynamic> cat, bool isSelected, List<dynamic> allCategories) {
     final color = isSelected ? Colors.white : AppColors.primary;
     
     if (cat['type'] == 'all') {
-      return Icon(Icons.grid_view_rounded, color: color, size: 24);
+      final realCategories = allCategories.where((c) => c['type'] != 'all').take(4).toList();
+      
+      return SizedBox(
+        width: 68,
+        height: 68,
+        child: Center(
+          child: Container(
+            width: 52,
+            height: 52,
+            child: Stack(
+              children: List.generate(realCategories.length, (index) {
+                final c = realCategories[index];
+                // Position 4 icons in a tight circular cluster
+                final angles = [0.0, 1.57, 3.14, 4.71]; // Top-right, Bottom-right, Bottom-left, Top-left
+                final double radius = 10.0;
+                
+                return Center(
+                  child: Transform.translate(
+                    offset: Offset(
+                      radius * (index == 0 || index == 1 ? 1 : -1),
+                      radius * (index == 1 || index == 2 ? 1 : -1),
+                    ),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: isSelected ? Colors.white.withOpacity(0.3) : AppColors.primary.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: color.withOpacity(0.5), width: 1),
+                      ),
+                      child: ClipOval(
+                        child: _buildMiniCategoryIcon(c['type'], c['iconUrl'], color),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      );
     }
     
     if (cat['iconUrl'] != null && cat['iconUrl'].toString().isNotEmpty) {
-      final url = cat['iconUrl'].toString();
-      final fullUrl = url.startsWith('http') ? url : 'https://api.otlob-egy.online$url';
-      
-      // Debug print to check the URL
-      print('Loading Category Icon: $fullUrl');
-
+      final fullUrl = ImageUtils.formatImageUrl(cat['iconUrl'] as String?);
       return SizedBox(
-        width: 24,
-        height: 24,
-        child: Image.network(
-          fullUrl,
-          fit: BoxFit.contain,
-          // Removed color tinting to allow multi-color icons
-          errorBuilder: (context, error, stackTrace) {
-            print('Error loading category icon ($fullUrl): $error');
-            return _buildFallbackIcon(cat['type'], color);
-          },
+        width: 68,
+        height: 68,
+        child: CachedNetworkImage(
+          imageUrl: fullUrl,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          errorWidget: (context, url, error) => _buildFallbackIcon(cat['type'], color),
         ),
       );
     }
@@ -396,85 +462,130 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return _buildFallbackIcon(cat['type'], color);
   }
 
+  Widget _buildMiniCategoryIcon(String type, dynamic iconUrl, Color color) {
+    if (iconUrl != null && iconUrl.toString().isNotEmpty) {
+      return CachedNetworkImage(
+        imageUrl: ImageUtils.formatImageUrl(iconUrl as String?),
+        fit: BoxFit.cover,
+        errorWidget: (context, url, error) => Icon(_getFallbackIconData(type), color: color, size: 14),
+      );
+    }
+    return Icon(_getFallbackIconData(type), color: color, size: 14);
+  }
+
+  IconData _getFallbackIconData(String type) {
+    if (type.contains('restaurant')) return Icons.restaurant_rounded;
+    if (type.contains('pharmacy')) return Icons.healing_rounded;
+    if (type.contains('supermarket') || type.contains('market')) return Icons.shopping_bag_rounded;
+    return Icons.category_rounded;
+  }
+
   Widget _buildFallbackIcon(String type, Color color) {
-    IconData icon = Icons.category_rounded;
-    if (type.contains('restaurant')) icon = Icons.restaurant_rounded;
-    if (type.contains('pharmacy')) icon = Icons.healing_rounded;
-    if (type.contains('supermarket') || type.contains('market')) icon = Icons.shopping_bag_rounded;
-    
-    return Icon(icon, color: color, size: 24);
+    return SizedBox(
+      width: 68,
+      height: 68,
+      child: Center(
+        child: Icon(_getFallbackIconData(type), color: color, size: 40),
+      ),
+    );
   }
 
   Widget _buildCustomCourierBanner() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final s = AppStrings.of(context);
-    return GestureDetector(
-      onTap: () => context.push('/custom-delivery'),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-              color: AppColors.primary.withOpacity(0.4), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.1),
-              blurRadius: 14,
-              offset: const Offset(0, 5),
-            )
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.delivery_dining_rounded,
-                  color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.customDeliveryBannerTitle,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2A2A) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+            color: AppColors.primary.withOpacity(0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.1),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: InkWell(
+        onTap: () => context.push('/custom-delivery'),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.customDeliveryBannerTitle,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    s.customDeliveryBannerSub,
-                    style: TextStyle(
-                        color: Colors.grey.shade500, fontSize: 12),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: Text(
+                        s.customDeliveryBannerSub,
+                        maxLines: _isCourierExpanded ? 10 : 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: Colors.grey.shade500, fontSize: 12, height: 1.3),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() => _isCourierExpanded = !_isCourierExpanded);
+                      },
+                      child: Text(
+                        _isCourierExpanded ? s.readLess : s.readMore,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
-                shape: BoxShape.circle,
+              const SizedBox(width: 16),
+              Consumer(
+                builder: (context, ref, child) {
+                  final platformSettings = ref.watch(platformSettingsProvider).value;
+                  final iconUrl = platformSettings?.deliveryBannerIconUrl ?? platformSettings?.motorcycleIconUrl;
+
+                  return Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: iconUrl != null && iconUrl.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: CachedNetworkImage(
+                              imageUrl: ImageUtils.formatImageUrl(iconUrl),
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => const Icon(Icons.delivery_dining_rounded, color: Colors.white, size: 28),
+                              errorWidget: (context, url, error) => const Icon(Icons.delivery_dining_rounded, color: Colors.white, size: 28),
+                            ),
+                          )
+                        : const Icon(Icons.delivery_dining_rounded, color: Colors.white, size: 28),
+                  );
+                },
               ),
-              child: Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.arrow_back_ios_new_rounded
-                    : Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: AppColors.primary,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -492,77 +603,184 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       const Color(0xFF2E7D32),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: SizedBox(
-        height: 140,
-        child: PageView.builder(
-          controller: _promoPageController,
-          onPageChanged: (int page) {
-            _currentPromoPage = page;
-          },
-          itemBuilder: (context, index) {
-            final actualIndex = index % banners.length;
-            final b = banners[actualIndex];
-            final col = palette[actualIndex % palette.length];
-            
-            final title = (s.isArabic && b['titleAr'] != null) ? b['titleAr'] : b['title'];
-            final description = (s.isArabic && b['descriptionAr'] != null) ? b['descriptionAr'] : (b['description'] ?? '');
-            
-            final String imageUrl = b['imageUrl'] ?? '';
-            final String fullUrl = imageUrl.startsWith('http') ? imageUrl : 'https://api.otlob-egy.online$imageUrl';
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: SizedBox(
+            height: 160,
+            child: PageView.builder(
+              controller: _promoPageController,
+              onPageChanged: (int page) {
+                setState(() => _currentPromoPage = page);
+              },
+              itemBuilder: (context, index) {
+                final actualIndex = index % banners.length;
+                final b = banners[actualIndex];
+                final col = palette[actualIndex % palette.length];
+                
+                final title = (s.isArabic && b['titleAr'] != null) ? b['titleAr'] : b['title'];
+                final description = (s.isArabic && b['descriptionAr'] != null) ? b['descriptionAr'] : (b['description'] ?? '');
+                
+                final String imageUrl = b['imageUrl'] ?? '';
+                final String fullUrl = imageUrl.startsWith('http') ? imageUrl : 'https://api.otlob-egy.online$imageUrl';
 
-            return Container(
-              margin: const EdgeInsets.symmetric(horizontal: 6),
+                final vendorId = b['vendorId']?.toString();
+                final linkedVendor = vendorId != null 
+                    ? data.products.where((v) => v['id']?.toString() == vendorId).firstOrNull 
+                    : null;
+
+                return GestureDetector(
+                  onTap: () async {
+                    if (b['type'] == 'VENDOR' || b['type'] == 'PRODUCT') {
+                      final vendorId = b['vendorId']?.toString();
+                      if (vendorId != null) {
+                        context.push('/vendor', extra: {
+                          'id': vendorId, 
+                          'name': title,
+                          'productId': b['type'] == 'PRODUCT' ? b['productId']?.toString() : null,
+                        });
+                      }
+                    } else if (b['type'] == 'EXTERNAL_LINK') {
+                      final url = b['externalUrl']?.toString();
+                      if (url != null && url.isNotEmpty) {
+                        final uri = Uri.tryParse(url);
+                        if (uri != null && await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        }
+                      }
+                    }
+                  },
+                  child: AnimatedBuilder(
+                    animation: _promoPageController,
+                    builder: (context, child) {
+                      double value = 1.0;
+                      if (_promoPageController.position.hasContentDimensions) {
+                        value = _promoPageController.page! - index;
+                        value = (1 - (value.abs() * 0.1)).clamp(0.0, 1.0);
+                      }
+                      return Transform.scale(
+                        scale: value,
+                        child: child,
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                            colors: [col, col.withOpacity(0.8)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight),
+                        boxShadow: [
+                          BoxShadow(color: col.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
+                        ],
+                        image: imageUrl.isNotEmpty ? DecorationImage(
+                          image: NetworkImage(fullUrl),
+                          fit: BoxFit.cover,
+                          colorFilter: ColorFilter.mode(
+                              col.withOpacity(0.4), BlendMode.srcATop),
+                        ) : null,
+                      ),
+                      child: Stack(
+                        children: [
+                          if (linkedVendor != null)
+                            Positioned(
+                              top: 16,
+                              right: 16,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${linkedVendor['rating'] ?? '4.5'}',
+                                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  if (linkedVendor != null) ...[
+                                    Text(
+                                      (linkedVendor['name'] ?? '').toString().toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.2,
+                                        shadows: [Shadow(blurRadius: 10, color: Colors.black)],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  Text(title,
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 22,
+                                          letterSpacing: -0.5,
+                                          shadows: [Shadow(blurRadius: 12, color: Colors.black54)])),
+                                  if (description.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(description,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                            color: Colors.white.withOpacity(0.95),
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                            shadows: const [Shadow(blurRadius: 8, color: Colors.black38)])),
+                                  ],
+                                ]),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(banners.length, (index) {
+            final isSelected = (_currentPromoPage % banners.length) == index;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              height: 6,
+              width: isSelected ? 20 : 6,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                gradient: LinearGradient(
-                    colors: [col, col.withOpacity(0.7)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight),
-                image: imageUrl.isNotEmpty ? DecorationImage(
-                  image: NetworkImage(fullUrl),
-                  fit: BoxFit.cover,
-                  colorFilter: ColorFilter.mode(
-                      col.withOpacity(0.4), BlendMode.srcATop),
-                ) : null,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              shadows: [
-                                Shadow(blurRadius: 4, color: Colors.black45)
-                              ])),
-                      if (description.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(description,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 12)),
-                      ],
-                    ]),
+                color: isSelected ? AppColors.primary : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(3),
               ),
             );
-          },
+          }),
         ),
-      ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
   Widget _buildSectionTitle(HomeData data) {
     final s = AppStrings.of(context);
     
-    String label = s.isArabic ? 'جميع المتاجر' : 'All Stores';
+    String label = s.allStores;
     
     if (_selectedType != 'all') {
       try {
@@ -571,10 +789,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ? selectedCat['nameAr']
             : selectedCat['name'];
         
-        label = s.isArabic ? 'متاجر $catName القريبة' : 'Nearby $catName';
+        label = '${s.nearbyPrefix}$catName${s.nearbySuffix}';
       } catch (_) {
-        // Fallback to a generic title if not found
-        label = s.isArabic ? 'المتاجر القريبة' : 'Nearby Stores';
+        label = s.nearbyStores;
       }
     }
 
@@ -652,44 +869,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )));
   }
 
-  Widget _buildBottomNav(BuildContext context) {
+  Widget _buildBottomNav(BuildContext context, HomeData data) {
     final s = AppStrings.of(context);
-    return BottomNavigationBar(
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 0,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: Colors.grey,
-      showSelectedLabels: true,
-      showUnselectedLabels: true,
-      selectedLabelStyle:
-          const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-      elevation: 20,
-      onTap: (index) {
-        if (index == 1) context.push('/orders');
-        if (index == 2) {
-          context.push('/chat/support/GENERAL',
-              extra: {'title': s.helpCenter});
-        }
-        if (index == 3) context.push('/profile');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1C) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(0, Icons.home_filled, Icons.home_outlined, s.navHome, true),
+              _buildNavItem(1, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_outline_rounded, s.navChat, false),
+              _buildNavItem(3, Icons.receipt_long, Icons.receipt_long_outlined, s.navOrders, false),
+              _buildNavItem(4, Icons.person_rounded, Icons.person_outline_rounded, s.navProfile, false),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, bool isSelected) {
+    final color = isSelected ? AppColors.primary : Colors.grey;
+    return InkWell(
+      onTap: () {
+        if (index == 1) context.push('/chat/support/0');
+        if (index == 3) context.push('/orders');
+        if (index == 4) context.push('/profile');
       },
-      items: [
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: const Icon(Icons.home_filled),
-            label: s.navHome),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.receipt_long_outlined),
-            activeIcon: const Icon(Icons.receipt_long),
-            label: s.navOrders),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.chat_bubble_outline_rounded),
-            activeIcon: const Icon(Icons.chat_bubble_rounded),
-            label: s.navChat),
-        BottomNavigationBarItem(
-            icon: const Icon(Icons.person_outline_rounded),
-            activeIcon: const Icon(Icons.person_rounded),
-            label: s.navProfile),
-      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(isSelected ? activeIcon : inactiveIcon, color: color, size: 26),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+        ],
+      ),
     );
   }
 }

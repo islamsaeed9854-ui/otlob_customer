@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../../../core/utils/image_utils.dart';
-import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../providers/favorites_provider.dart';
@@ -28,12 +26,17 @@ class VendorCard extends ConsumerWidget {
     return AppColors.primary;
   }
 
-  Widget _chip(IconData icon, String label) {
+  Widget _chip(IconData icon, String label, {Color? textColor}) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 13, color: Colors.grey.shade500),
-      const SizedBox(width: 3),
-      Flexible(
-        child: Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12), overflow: TextOverflow.ellipsis, maxLines: 1),
+      Icon(icon, size: 12, color: textColor ?? Colors.grey.shade600),
+      const SizedBox(width: 4),
+      Text(
+        label, 
+        style: TextStyle(
+          color: textColor ?? Colors.grey.shade700, 
+          fontSize: 12, 
+          fontWeight: FontWeight.w600
+        ), 
       ),
     ]);
   }
@@ -45,6 +48,7 @@ class VendorCard extends ConsumerWidget {
     final vendorId = vendor['id']?.toString() ?? '';
     final isFav = favorites.contains(vendorId);
     final strings = AppStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -63,7 +67,7 @@ class VendorCard extends ConsumerWidget {
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
-          onTap: () => context.push('/restaurant', extra: vendor),
+          onTap: () => context.push('/vendor', extra: vendor),
           borderRadius: BorderRadius.circular(18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
             Stack(children: [
@@ -101,36 +105,81 @@ class VendorCard extends ConsumerWidget {
             ]),
             Padding(
               padding: const EdgeInsets.all(14),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Row(children: [
-                  Expanded(child: Text(vendor['name'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                  Row(children: [
-                    const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                    const SizedBox(width: 2),
-                    Text('${vendor['rating']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                  ]),
-                ]),
-                const SizedBox(height: 4),
-                Text(vendor['vendor'] as String, style: TextStyle(color: Colors.grey.shade500, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 10),
-                Row(children: [
-                  _chip(Icons.access_time_rounded, vendor['deliveryTime']?.toString() ?? ''),
-                  const SizedBox(width: 8),
-                  Expanded(child: _chip(Icons.delivery_dining, vendor['deliveryFee']?.toString() ?? '')),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(10)),
-                    child: Builder(builder: (ctx) => const Text('Order Now', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
-                  ),
-                ]),
-              ]),
+              child: Builder(builder: (context) {
+                final isAr = Localizations.localeOf(context).languageCode == 'ar';
+                final name = isAr && vendor['nameAr'] != null && vendor['nameAr'].toString().isNotEmpty
+                    ? vendor['nameAr'] as String
+                    : vendor['name'] as String;
+                final description = isAr && vendor['vendorAr'] != null && vendor['vendorAr'].toString().isNotEmpty
+                    ? vendor['vendorAr'] as String
+                    : vendor['vendor'] as String;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Row(children: [
+                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
+                        const SizedBox(width: 2),
+                        Text('${vendor['rating']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      ]),
+                    ]),
+                    const SizedBox(height: 4),
+                    Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _chip(
+                              Icons.access_time_rounded,
+                              vendor['deliveryTime']?.toString() ?? '',
+                              textColor: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                            const SizedBox(height: 6),
+                            _chip(
+                              Icons.delivery_dining_rounded,
+                              vendor['deliveryFee']?.toString() ?? '',
+                              textColor: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Text(
+                            strings.orderShort,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              }),
             ),
           ]),
         ),
       ),
     );
   }
-
-
 }

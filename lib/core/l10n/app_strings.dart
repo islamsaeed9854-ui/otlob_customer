@@ -14,6 +14,7 @@ class AppStrings {
   String get navOrders => isArabic ? 'طلباتي' : 'Orders';
   String get navChat => isArabic ? 'دردشة' : 'Chat';
   String get navProfile => isArabic ? 'حسابي' : 'Profile';
+  String get navSearch => isArabic ? 'البحث' : 'Search';
 
   String get deliverTo => isArabic ? 'توصيل إلى' : 'Deliver to';
   String get locationName => isArabic ? 'المعادي، القاهرة' : 'Maadi, Cairo';
@@ -26,7 +27,9 @@ class AppStrings {
   String get nearbySuper => isArabic ? 'السوبرماركت القريب' : 'Nearby Supermarkets';
   String get seeAll => isArabic ? 'عرض الكل' : 'See All';
   String get customDeliveryBannerTitle => isArabic ? 'توصيل خاص' : 'Custom Courier';
-  String get customDeliveryBannerSub => isArabic ? 'يمكنك طلب مندوب خاص بك لتوصيل طلبك' : 'Request a personal courier for any delivery';
+  String get customDeliveryBannerSub => isArabic 
+      ? 'الخدمة توفر لك وسيلة سهلة لطلب مندوب لتوصيل أو إحضار أي شيء، أو طلب رحلة للتنقل أو التنزه داخل المدينة أو خارجها، بكل راحة وسرعة وبشكل آمن.' 
+      : 'The service provides an easy way to request a courier to deliver or pick up any item, or to book a ride for transportation or leisure trips within or outside the city, with comfort, speed, and safety.';
   String get customDeliveryTitle => isArabic ? 'توصيل خاص' : 'Custom Delivery';
   String get pickupLocation => isArabic ? 'موقع الاستلام' : 'Pickup Location';
   String get dropoffLocation => isArabic ? 'موقع التسليم' : 'Dropoff Location';
@@ -78,6 +81,88 @@ class AppStrings {
   String get language => isArabic ? 'اللغة' : 'Language';
   String get notifications => isArabic ? 'التنبيهات' : 'Notifications';
   String get darkMode => isArabic ? 'الوضع الليلي' : 'Dark Mode';
+  String get languageName => isArabic ? 'العربية 🇪🇬' : 'English 🇬🇧';
+  String get enabled => isArabic ? 'مفعل' : 'Enabled';
+  String get disabled => isArabic ? 'معطل' : 'Disabled';
+  String get on => isArabic ? 'مفعل' : 'On';
+  String get off => isArabic ? 'معطل' : 'Off';
+  String get logoutConfirm => isArabic ? 'هل أنت متأكد أنك تريد تسجيل الخروج؟' : 'Are you sure you want to log out?';
+  String get cancel => isArabic ? 'إلغاء' : 'Cancel';
+  String get saveChanges => isArabic ? 'حفظ التغييرات' : 'Save Changes';
+  String get fullName => isArabic ? 'الاسم الكامل' : 'Full Name';
+  String get emailAddress => isArabic ? 'البريد الإلكتروني' : 'Email Address';
+  String get phoneNumber => isArabic ? 'رقم الهاتف' : 'Phone Number';
+  String get noAddresses => isArabic ? 'لا توجد عناوين محفوظة' : 'No Addresses Saved';
+  String get addAddressSub => isArabic ? 'أضف عنواناً لتسريع عملية الطلب' : 'Add an address to speed up your order process';
+  String get addNewAddress => isArabic ? 'إضافة عنوان جديد' : 'Add New Address';
+  String get addressLabel => isArabic ? 'العنوان (مثلاً: المنزل، العمل)' : 'Label (e.g. Home, Work)';
+  String get fullAddress => isArabic ? 'العنوان الكامل' : 'Full Address';
+  String get addAddress => isArabic ? 'إضافة العنوان' : 'Add Address';
+  String get address => isArabic ? 'عنوان' : 'Address';
+  String get welcomeBack => isArabic ? 'مرحباً بعودتك' : 'Welcome Back';
+  String get loginToApp => isArabic ? 'تسجيل الدخول إلى أطلب' : 'Log in to Otlob';
+  String get email => isArabic ? 'البريد الإلكتروني' : 'Email';
+  String get password => isArabic ? 'كلمة المرور' : 'Password';
+  String get emailRequired => isArabic ? 'يرجى إدخال بريد إلكتروني صحيح' : 'Valid email required';
+  String get passwordMinLen => isArabic ? '6 أحرف على الأقل' : 'Min 6 characters';
+  String get forgotPassword => isArabic ? 'نسيت كلمة المرور؟' : 'Forgot Password?';
+  String get login => isArabic ? 'تسجيل الدخول' : 'Login';
+  String get dontHaveAccount => isArabic ? 'ليس لديك حساب؟ ' : "Don't have an account? ";
+  String get signUp => isArabic ? 'إنشاء حساب' : 'Sign up';
+  String get createAccount => isArabic ? 'إنشاء حساب جديد' : 'Create Account';
+  String get joinApp => isArabic ? 'انضم إلى أطلب' : 'Join Otlob';
+  String get nameRequired => isArabic ? 'الاسم مطلوب' : 'Name is required';
+  String get phoneNumberOptional => isArabic ? 'رقم الهاتف (اختياري)' : 'Phone Number (Optional)';
+  String get register => isArabic ? 'تسجيل' : 'Register';
+  String get alreadyHaveAccount => isArabic ? 'لديك حساب بالفعل؟ ' : 'Already have an account? ';
+  String get vendor => isArabic ? 'البائع' : 'Vendor';
+  String get defaultCity => isArabic ? 'القاهرة، مصر' : 'Cairo, Egypt';
+  String get orderNo => isArabic ? 'طلب رقم ' : 'Order #';
+  String get readLess => isArabic ? 'عرض أقل' : 'Read Less';
+  String get readMore => isArabic ? 'اقرأ المزيد...' : 'Read More...';
+  String get customCourierDesc => isArabic 
+      ? 'مندوب خاص هي خدمة تتيح لك إرسال أو استلام أي طلب بسهولة وسرعة.\nاطلب مندوبًا لتوصيل أغراضك أو إحضار أي شيء من أي مكان، طالما كان قانونيًا ومسموحًا بنقله.' 
+      : 'Custom Courier is a service that allows you to send or receive any item easily and quickly.\nRequest a courier to deliver your items or bring anything from anywhere, as long as it is legal and allowed to be transported.';
+  String get rideServiceDesc => isArabic 
+      ? 'خدمة الرحلات تتيح لك التنقل أو التنزه بكل سهولة وراحة، سواء داخل المدينة أو إلى أي مكان تريده.\nيمكنك طلب رحلة في أي وقت، وسنوفّر لك وسيلة نقل آمنة وسريعة لتصل إلى وجهتك أو تستمتع بوقتك بدون عناء.' 
+      : 'Ride service lets you travel or enjoy trips with ease and comfort, whether within the city or anywhere you choose.\nYou can request a ride anytime, and we’ll provide a safe and fast transport option to get you to your destination or enjoy your time without hassle.';
+  String get yourLocation => isArabic ? 'موقعك الحالي' : 'Your Location';
+  String get whereAreYou => isArabic ? 'أين أنت الآن؟' : 'Where are you now?';
+  String get wherePickUp => isArabic ? 'من أين سيستلم السائق الطلب؟' : 'Where should driver pick up?';
+  String get destination => isArabic ? 'وجهتك' : 'Destination';
+  String get whereToGo => isArabic ? 'إلى أين تريد الذهاب؟' : 'Where do you want to go?';
+  String get wherePackageGoing => isArabic ? 'أين سيتم تسليم الطلب؟' : 'Where is the package going?';
+  String get required => isArabic ? 'مطلوب' : 'Required';
+  String get delivery => isArabic ? 'توصيل' : 'Delivery';
+  String get ride => isArabic ? 'رحلة' : 'Ride';
+  String get findingCaptain => isArabic ? 'جاري البحث عن كابتن...' : 'Finding a Captain...';
+  String get pleaseWaitConnectDriver => isArabic ? 'يرجى الانتظار لحين قبول أقرب سائق لطلبك' : 'Please wait while we connect you with the nearest driver';
+  String get requestConfirmed => isArabic ? 'تم تأكيد طلبك!' : 'Request Confirmed!';
+  String get plateNo => isArabic ? 'رقم اللوحة' : 'Plate No.';
+  String get trackRequest => isArabic ? 'تتبع الطلب' : 'Track Request';
+  String get backToHome => isArabic ? 'العودة للرئيسية' : 'Back to Home';
+  String get products => isArabic ? 'المنتجات' : 'Products';
+  String get noItemsInCategory => isArabic ? 'لا توجد منتجات في هذا القسم حالياً' : 'No items in this category currently';
+  String get errorPrefix => isArabic ? 'خطأ: ' : 'Error: ';
+  String get catAll => isArabic ? 'الكل' : 'All';
+  String get catMedicines => isArabic ? 'أدوية' : 'Medicines';
+  String get catCosmetics => isArabic ? 'مستحضرات تجميل' : 'Cosmetics';
+  String get addToCart => isArabic ? 'إضافة للسلة' : 'Add to Cart';
+  String get done => isArabic ? 'تم' : 'Done';
+  String get allStores => isArabic ? 'جميع المتاجر' : 'All Stores';
+  String get stores => isArabic ? 'المتاجر' : 'Stores';
+  String get allResults => isArabic ? 'جميع النتائج' : 'All Results';
+  String get searchResults => isArabic ? 'نتائج البحث' : 'Search Results';
+  String get clickToViewMenu => isArabic ? 'اضغط لعرض القائمة كاملة' : 'Click to view full menu';
+  String get searchInStores => isArabic ? 'ابحث في المتاجر...' : 'Search in stores...';
+  String get featuredSuggestions => isArabic ? 'اقتراحات مميزة' : 'Featured Suggestions';
+  String get searchErrorPrefix => isArabic ? 'خطأ في البحث: ' : 'Search error: ';
+  String get typeAMessage => isArabic ? 'اكتب رسالة...' : 'Type a message...';
+  String get orderShort => isArabic ? 'اطلب' : 'Order';
+  String get proLabel => isArabic ? 'برو' : 'PRO';
+  String get nearbyStores => isArabic ? 'المتاجر القريبة' : 'Nearby Stores';
+  String get nearbyPrefix => isArabic ? 'متاجر ' : 'Nearby ';
+  String get nearbySuffix => isArabic ? ' القريبة' : '';
   String get appName => isArabic ? 'أطلب' : 'OTLOB';
 
   List<List<String>> get promoBanners => isArabic ? [

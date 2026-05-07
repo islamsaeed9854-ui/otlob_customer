@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,24 +35,26 @@ class ProfileScreen extends ConsumerWidget {
                   _buildToggleTile(
                     icon: Icons.language_rounded,
                     title: s.language,
-                    subtitle: profileState.isArabic ? 'العربية 🇪🇬' : 'English 🇬🇧',
+                    subtitle: s.languageName,
                     value: settingsState.languageCode == 'ar',
                     onChanged: (val) {
-                      ref.read(appSettingsProvider.notifier).changeLanguage(val ? 'ar' : 'en');
+                      final langCode = val ? 'ar' : 'en';
+                      context.setLocale(Locale(langCode));
+                      ref.read(appSettingsProvider.notifier).changeLanguage(langCode);
                       ref.read(profileProvider.notifier).toggleLanguage();
                     },
                   ),
                   _buildToggleTile(
                     icon: Icons.notifications_active_rounded,
                     title: s.notifications,
-                    subtitle: profileState.notificationsEnabled ? 'Enabled' : 'Disabled',
+                    subtitle: profileState.notificationsEnabled ? s.enabled : s.disabled,
                     value: profileState.notificationsEnabled,
                     onChanged: (_) => ref.read(profileProvider.notifier).toggleNotifications(),
                   ),
                   _buildToggleTile(
                     icon: Icons.dark_mode_rounded,
                     title: s.darkMode,
-                    subtitle: settingsState.themeMode == ThemeMode.dark ? 'On' : 'Off',
+                    subtitle: settingsState.themeMode == ThemeMode.dark ? s.on : s.off,
                     value: settingsState.themeMode == ThemeMode.dark,
                     onChanged: (val) => ref.read(appSettingsProvider.notifier).changeTheme(val ? ThemeMode.dark : ThemeMode.light),
                   ),
@@ -88,10 +91,10 @@ class ProfileScreen extends ConsumerWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: Text(s.logout),
-                          content: const Text('Are you sure you want to log out?'),
+                          content: Text(s.logoutConfirm),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Logout', style: TextStyle(color: Colors.red))),
+                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
+                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.logout, style: const TextStyle(color: Colors.red))),
                           ],
                         ),
                       );
@@ -156,6 +159,14 @@ class ProfileScreen extends ConsumerWidget {
       ),
       child: Stack(
         children: [
+          Positioned(
+            left: 16,
+            top: MediaQuery.of(context).padding.top + 8,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+              onPressed: () => context.pop(),
+            ),
+          ),
           Positioned(
             right: -20,
             top: -20,
@@ -373,7 +384,7 @@ class ProfileScreen extends ConsumerWidget {
                 TextField(
                   controller: nameCtrl,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: s.fullName,
                     prefixIcon: const Icon(Icons.person_outline),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -382,16 +393,17 @@ class ProfileScreen extends ConsumerWidget {
                 TextField(
                   controller: emailCtrl,
                   decoration: InputDecoration(
-                    labelText: 'Email Address',
+                    labelText: s.emailAddress,
                     prefixIcon: const Icon(Icons.email_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
+                const SizedBox(height: 16),
                 TextField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: s.phoneNumber,
                     prefixIcon: const Icon(Icons.phone_outlined),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -415,7 +427,7 @@ class ProfileScreen extends ConsumerWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 0,
                     ),
-                    child: const Text('Save Changes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    child: Text(s.saveChanges, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
                 ),
                 const SizedBox(height: 32),

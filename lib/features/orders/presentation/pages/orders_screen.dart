@@ -68,7 +68,7 @@ class OrdersScreen extends ConsumerWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(isCustom ? (s.isArabic ? 'طلب خاص' : 'Custom Delivery') : 'Order #${order['id'].toString().split('-').last}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(isCustom ? s.customDeliveryTitle : '${s.orderNo}${order['id'].toString().split('-').last}', style: const TextStyle(fontWeight: FontWeight.bold)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),

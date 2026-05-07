@@ -1,5 +1,6 @@
 import 'package:image_picker/image_picker.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/providers/app_settings_provider.dart';
 import '../../../../core/services/token_service.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../../data/repositories/profile_repository_impl.dart';
@@ -45,18 +46,19 @@ class ProfileState {
     );
   }
 }
-
 @Riverpod(keepAlive: true)
 class Profile extends _$Profile {
   @override
   ProfileState build() {
+    final settings = ref.read(appSettingsProvider);
+    
     // Initial placeholder state
-    final initialState = const ProfileState(
+    final initialState = ProfileState(
       name: '',
       email: '',
       phone: '',
       avatar: '',
-      isArabic: true,
+      isArabic: settings.languageCode == 'ar',
       notificationsEnabled: true,
       addresses: [],
     );

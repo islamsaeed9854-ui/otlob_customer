@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/l10n/app_strings.dart';
 import '../providers/profile_controller.dart';
 
 class AddressesScreen extends ConsumerWidget {
@@ -10,11 +11,12 @@ class AddressesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileState = ref.watch(profileProvider);
+    final s = AppStrings.of(context);
     final addresses = profileState.addresses;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Addresses', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(s.myAddresses, style: const TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
@@ -34,7 +36,7 @@ class AddressesScreen extends ConsumerWidget {
         onPressed: () => _showAddAddress(context, ref),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
-        label: const Text('Add New Address'),
+        label: Text(s.addNewAddress),
       ),
     );
   }
@@ -46,9 +48,9 @@ class AddressesScreen extends ConsumerWidget {
         children: [
           Icon(Icons.location_off_rounded, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text('No Addresses Saved', style: TextStyle(fontSize: 18, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+          Text(AppStrings.of(context).noAddresses, style: TextStyle(fontSize: 18, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Text('Add an address to speed up your order process', style: TextStyle(color: Colors.grey.shade500)),
+          Text(AppStrings.of(context).addAddressSub, style: TextStyle(color: Colors.grey.shade500)),
         ],
       ),
     );
@@ -79,7 +81,7 @@ class AddressesScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(address['label'] ?? 'Address', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(address['label'] ?? AppStrings.of(context).address, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
                 Text(address['address'] ?? '', style: TextStyle(color: Colors.grey.shade600, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
@@ -118,9 +120,9 @@ class AddressesScreen extends ConsumerWidget {
           children: [
             const Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 24),
-            TextField(controller: labelCtrl, decoration: const InputDecoration(labelText: 'Label (e.g. Home, Work)', prefixIcon: Icon(Icons.label))),
+            TextField(controller: labelCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).addressLabel, prefixIcon: const Icon(Icons.label))),
             const SizedBox(height: 16),
-            TextField(controller: addressCtrl, decoration: const InputDecoration(labelText: 'Full Address', prefixIcon: Icon(Icons.location_on))),
+            TextField(controller: addressCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).fullAddress, prefixIcon: const Icon(Icons.location_on))),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -144,7 +146,7 @@ class AddressesScreen extends ConsumerWidget {
                   }
                 },
                 style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: const Text('Add Address'),
+                child: Text(AppStrings.of(context).addAddress),
               ),
             ),
             const SizedBox(height: 32),

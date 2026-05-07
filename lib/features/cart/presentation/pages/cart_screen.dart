@@ -63,7 +63,7 @@ class CartScreen extends ConsumerWidget {
   Widget _buildVendorBasket(BuildContext context, WidgetRef ref, String vendorId, List<CartItem> items, AppStrings s) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final vendorName = items.isNotEmpty ? (items.first.product['vendorName'] as String? ?? 'Vendor') : 'Vendor';
+    final vendorName = items.isNotEmpty ? (items.first.product['vendorName'] as String? ?? s.vendor) : s.vendor;
     final subtotal = ref.read(cartProvider).getVendorSubtotal(vendorId);
     final delivery = subtotal > 200 ? 0.0 : 15.0;
     final total = subtotal + delivery;

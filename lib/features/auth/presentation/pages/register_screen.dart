@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/register_controller.dart';
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/l10n/app_strings.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -55,8 +56,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
 
+    final s = AppStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Account')),
+      appBar: AppBar(title: Text(s.createAccount)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -79,7 +81,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 // =======================
 
                 Text(
-                  'Join Otlob',
+                  s.joinApp,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -89,24 +91,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 TextFormField(
                   controller: _nameController,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person_outline),
+                  decoration: InputDecoration(
+                    labelText: s.fullName,
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
                   validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Name is required' : null,
+                      (v == null || v.isEmpty) ? s.nameRequired : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                  decoration: InputDecoration(
+                    labelText: s.email,
+                    prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   validator: (v) => (v == null || !v.contains('@'))
-                      ? 'Valid email required'
+                      ? s.emailRequired
                       : null,
                 ),
                 const SizedBox(height: 16),
@@ -114,9 +116,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number (Optional)',
-                    prefixIcon: Icon(Icons.phone_outlined),
+                  decoration: InputDecoration(
+                    labelText: s.phoneNumberOptional,
+                    prefixIcon: const Icon(Icons.phone_outlined),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -125,12 +127,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   obscureText: true,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _submit(),
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
+                  decoration: InputDecoration(
+                    labelText: s.password,
+                    prefixIcon: const Icon(Icons.lock_outline),
                   ),
                   validator: (v) =>
-                      (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                      (v == null || v.length < 6) ? s.passwordMinLen : null,
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
@@ -144,7 +146,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text('Register'),
+                      : Text(s.register),
                 ),
                 const SizedBox(height: 24),
                 TextButton(
@@ -154,13 +156,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   },
                   child: RichText(
                     text: TextSpan(
-                      text: "Already have an account? ",
+                      text: s.alreadyHaveAccount,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       children: [
                         TextSpan(
-                          text: "Log in",
+                          text: s.login,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,

@@ -151,12 +151,12 @@ GoRouter appRouter(Ref ref) {
         builder: (context, state) => const HomeScreen(),
       ),
       GoRoute(
-        path: '/restaurant',
-        name: 'restaurant',
+        path: '/vendor',
+        name: 'vendor',
         builder: (context, state) {
           final restaurant = state.extra as Map<String, dynamic>?;
           if (restaurant == null) return const Scaffold(body: Center(child: CircularProgressIndicator()));
-          return RestaurantDetailScreen(restaurant: restaurant);
+          return VendorDetailScreen(restaurant: restaurant);
         },
       ),
       GoRoute(

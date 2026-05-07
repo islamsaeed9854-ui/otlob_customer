@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/login_controller.dart';
 import '../../../../core/router/route_paths.dart';
+import '../../../../core/l10n/app_strings.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -50,8 +51,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    final s = AppStrings.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Welcome Back')),
+      appBar: AppBar(title: Text(s.welcomeBack)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -74,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // =======================
 
                 Text(
-                  'Log in to Otlob',
+                  s.loginToApp,
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -84,26 +86,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: s.email,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) => (v == null || !v.contains('@'))
-                      ? 'Valid email required'
+                      ? s.emailRequired
                       : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: s.password,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (v) =>
-                      (v == null || v.length < 6) ? 'Min 6 characters' : null,
+                      (v == null || v.length < 6) ? s.passwordMinLen : null,
                 ),
 
                 // === ADDED FORGOT PASSWORD BUTTON HERE ===
@@ -113,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: TextButton(
                     onPressed: () => context.push(RoutePaths.forgotPassword),
                     child: Text(
-                      'Forgot Password?',
+                      s.forgotPassword,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
@@ -132,7 +134,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: loginState.isLoading ? null : _submit,
                     child: loginState.isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Login', style: TextStyle(fontSize: 18)),
+                        : Text(s.login, style: const TextStyle(fontSize: 18)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -140,13 +142,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: () => context.go(RoutePaths.register),
                   child: RichText(
                     text: TextSpan(
-                      text: "Don't have an account? ",
+                      text: s.dontHaveAccount,
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       children: [
                         TextSpan(
-                          text: "Sign up",
+                          text: s.signUp,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontWeight: FontWeight.bold,
