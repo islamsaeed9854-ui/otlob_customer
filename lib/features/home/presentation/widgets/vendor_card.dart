@@ -88,7 +88,7 @@ class VendorCard extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(color: _tagColor(tag), borderRadius: BorderRadius.circular(20)),
-                    child: Text(tag, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    child: Text(tag, style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
                   ),
                 ),
               Positioned(
@@ -118,11 +118,30 @@ class VendorCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      Expanded(child: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(name, style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        letterSpacing: -0.5,
+                      ), maxLines: 1, overflow: TextOverflow.ellipsis)),
                       Row(children: [
-                        const Icon(Icons.star_rounded, color: Colors.amber, size: 16),
-                        const SizedBox(width: 2),
-                        Text('${vendor['rating']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Builder(builder: (context) {
+                          double rating = double.tryParse(vendor['rating']?.toString() ?? '0') ?? 0.0;
+                          return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(5, (index) {
+                              if (index < rating.floor()) {
+                                return const Icon(Icons.star_rounded, color: Colors.amber, size: 14);
+                              } else if (index < rating) {
+                                return const Icon(Icons.star_half_rounded, color: Colors.amber, size: 14);
+                              } else {
+                                return Icon(Icons.star_rounded, color: Colors.grey.shade300, size: 14);
+                              }
+                            }),
+                          );
+                        }),
+                        const SizedBox(width: 6),
+                        Text('${vendor['rating'] ?? '0.0'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       ]),
                     ]),
                     const SizedBox(height: 4),
@@ -164,7 +183,7 @@ class VendorCard extends ConsumerWidget {
                           child: Text(
                             strings.orderShort,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontWeight: FontWeight.w900,
                               fontSize: 12,
                               letterSpacing: 0.5,

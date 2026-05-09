@@ -216,6 +216,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
             Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.monetization_on_rounded, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    '1,250',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isDark ? Colors.white10 : Colors.grey.shade100,
@@ -357,7 +384,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             name,
                             style: TextStyle(
                               color: isSelected
-                                  ? Colors.white
+                                  ? Colors.black
                                   : (isDark ? Colors.white : Colors.black87),
                               fontWeight: FontWeight.w900,
                               fontSize: 11,
@@ -378,7 +405,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildCategoryIcon(Map<String, dynamic> cat, bool isSelected, List<dynamic> allCategories) {
-    final color = isSelected ? Colors.white : AppColors.primary;
+    final color = isSelected ? Colors.black : AppColors.primary;
     
     if (cat['type'] == 'all') {
       final realCategories = allCategories.where((c) => c['type'] != 'all').take(4).toList();
@@ -848,20 +875,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildShimmer() {
-    return ListView(
-        padding: const EdgeInsets.all(16),
-        children: List.generate(
-            3,
-            (_) => Shimmer.fromColors(
-                  baseColor: Colors.grey.shade300,
-                  highlightColor: Colors.grey.shade100,
-                  child: Container(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      height: 240,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18))),
-                )));
+    return const Center(
+      child: CircularProgressIndicator(color: AppColors.primary),
+    );
   }
 
   Widget _buildBottomNav(BuildContext context, HomeData data) {

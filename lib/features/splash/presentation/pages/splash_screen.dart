@@ -30,15 +30,15 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.primary, 
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.fastfood_rounded, size: 100, color: Colors.white),
-            SizedBox(height: 24),
-            CircularProgressIndicator(color: Colors.white),
+            Image.asset('assets/logo_without_background.png', width: 200, fit: BoxFit.contain),
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(color: Colors.white),
           ],
         ),
       ),
