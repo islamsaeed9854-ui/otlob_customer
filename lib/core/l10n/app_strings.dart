@@ -18,7 +18,7 @@ class AppStrings {
 
   String get deliverTo => isArabic ? 'توصيل إلى' : 'Deliver to';
   String get locationName => isArabic ? 'المعادي، القاهرة' : 'Maadi, Cairo';
-  String get searchRestaurant => isArabic ? 'ابحث عن مطعم أو وجبة...' : 'Search for a restaurant or meal...';
+  String get searchRestaurant => isArabic ? 'ابحث عن ما تحتاجه، أنا في خدمتك...' : 'Search what you need, I\'m at your service...';
   String get restaurants => isArabic ? 'مطاعم' : 'Restaurants';
   String get pharmacies => isArabic ? 'صيدليات' : 'Pharmacies';
   String get supermarkets => isArabic ? 'سوبرماركت' : 'Supermarkets';

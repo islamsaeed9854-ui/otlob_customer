@@ -158,92 +158,95 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.4),
-                  width: 1.5,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  )
-                ]),
-            padding: const EdgeInsets.all(6),
-            child: Image.asset(
-              'assets/logo.png',
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  const Icon(Icons.location_on_rounded,
-                      color: AppColors.primary, size: 16),
-                  const SizedBox(width: 4),
-                  Text(s.deliverTo,
-                      style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500)),
-                ]),
-                const SizedBox(height: 2),
-                Row(children: [
-                  Text(s.locationName,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                      )),
-                  const SizedBox(width: 2),
-                  Icon(Icons.keyboard_arrow_down_rounded,
-                      size: 18, color: isDark ? Colors.white70 : AppColors.textPrimaryLight),
-                ]),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.white10 : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark ? Colors.white10 : Colors.grey.shade200,
-                width: 1,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    )
+                  ]),
+              padding: const EdgeInsets.all(6),
+              child: Image.asset(
+                'assets/logo.png',
+                fit: BoxFit.contain,
               ),
             ),
-            child: GestureDetector(
-              onTap: () => context.push('/notifications'),
-              child: Stack(
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.notifications_none_rounded,
-                      size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
-                  PositionedDirectional(
-                    end: 2,
-                    top: 2,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                          color: Colors.red, shape: BoxShape.circle),
-                    ),
-                  ),
+                  Row(children: [
+                    const Icon(Icons.location_on_rounded,
+                        color: AppColors.primary, size: 16),
+                    const SizedBox(width: 4),
+                    Text(s.deliverTo,
+                        style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500)),
+                  ]),
+                  const SizedBox(height: 2),
+                  Row(children: [
+                    Text(s.locationName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                        )),
+                    const SizedBox(width: 2),
+                    Icon(Icons.keyboard_arrow_down_rounded,
+                        size: 18, color: isDark ? Colors.white70 : AppColors.textPrimaryLight),
+                  ]),
                 ],
               ),
             ),
-          ),
-        ],
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white10 : Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : Colors.grey.shade200,
+                  width: 1,
+                ),
+              ),
+              child: GestureDetector(
+                onTap: () => context.push('/notifications'),
+                child: Stack(
+                  children: [
+                    Icon(Icons.notifications_none_rounded,
+                        size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
+                    PositionedDirectional(
+                      end: 2,
+                      top: 2,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                            color: Colors.red, shape: BoxShape.circle),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -299,8 +302,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : cat['name'];
 
             return Container(
-              width: 88,
-              height: 108,
+              width: 96,
+              height: 116,
               margin: const EdgeInsetsDirectional.only(end: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -381,17 +384,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       final realCategories = allCategories.where((c) => c['type'] != 'all').take(4).toList();
       
       return SizedBox(
-        width: 64,
-        height: 64,
+        width: 72,
+        height: 72,
         child: Center(
           child: SizedBox(
-            width: 50,
-            height: 50,
+            width: 56,
+            height: 56,
             child: Stack(
               children: List.generate(realCategories.length, (index) {
                 final c = realCategories[index];
                 // Position 4 icons in a tight circular cluster
-                final double radius = 14.0;
+                final double radius = 16.0;
                 
                 return Center(
                   child: Transform.translate(
@@ -400,8 +403,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       radius * (index == 1 || index == 2 ? 1 : -1),
                     ),
                     child: Container(
-                      width: 30,
-                      height: 30,
+                      width: 34,
+                      height: 34,
                       decoration: BoxDecoration(
                         color: isSelected ? Colors.white.withOpacity(0.3) : AppColors.primary.withOpacity(0.1),
                         shape: BoxShape.circle,
@@ -423,8 +426,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (cat['iconUrl'] != null && cat['iconUrl'].toString().isNotEmpty) {
       final fullUrl = ImageUtils.formatImageUrl(cat['iconUrl'] as String?);
       return SizedBox(
-        width: 64,
-        height: 64,
+        width: 72,
+        height: 72,
         child: CachedNetworkImage(
           imageUrl: fullUrl,
           fit: BoxFit.cover,
@@ -446,10 +449,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       return CachedNetworkImage(
         imageUrl: ImageUtils.formatImageUrl(iconUrl as String?),
         fit: BoxFit.cover,
-        errorWidget: (context, url, error) => Icon(_getFallbackIconData(type), color: color, size: 16),
+        errorWidget: (context, url, error) => Icon(_getFallbackIconData(type), color: color, size: 18),
       );
     }
-    return Icon(_getFallbackIconData(type), color: color, size: 16);
+    return Icon(_getFallbackIconData(type), color: color, size: 18);
   }
 
   IconData _getFallbackIconData(String type) {
@@ -461,10 +464,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildFallbackIcon(String type, Color color) {
     return SizedBox(
-      width: 64,
-      height: 64,
+      width: 72,
+      height: 72,
       child: Center(
-        child: Icon(_getFallbackIconData(type), color: color, size: 50),
+        child: Icon(_getFallbackIconData(type), color: color, size: 56),
       ),
     );
   }
