@@ -28,8 +28,8 @@ class AppStrings {
   String get seeAll => isArabic ? 'عرض الكل' : 'See All';
   String get customDeliveryBannerTitle => isArabic ? 'توصيل خاص' : 'Custom Courier';
   String get customDeliveryBannerSub => isArabic 
-      ? 'الخدمة توفر لك وسيلة سهلة لطلب مندوب لتوصيل أو إحضار أي شيء، أو طلب رحلة للتنقل أو التنزه داخل المدينة أو خارجها، بكل راحة وسرعة وبشكل آمن.' 
-      : 'The service provides an easy way to request a courier to deliver or pick up any item, or to book a ride for transportation or leisure trips within or outside the city, with comfort, speed, and safety.';
+      ? 'اطلب مندوب لتوصيل اي شئ أو رحلة للتنقل' 
+      : 'Request a delivery person for anything or a transportation trip';
   String get customDeliveryTitle => isArabic ? 'توصيل خاص' : 'Custom Delivery';
   String get pickupLocation => isArabic ? 'موقع الاستلام' : 'Pickup Location';
   String get dropoffLocation => isArabic ? 'موقع التسليم' : 'Dropoff Location';
@@ -46,6 +46,7 @@ class AppStrings {
   String get egp => isArabic ? ' ج.م' : ' EGP';
   String get retry => isArabic ? 'إعادة المحاولة' : 'Retry';
   String get noResults => isArabic ? 'لا توجد نتائج' : 'No results found';
+  String get orderNow => isArabic ? 'اطلب الآن' : 'Order Now';
   String get chatWithVendor => isArabic ? 'دردشة مع البائع' : 'Chat with Vendor';
   String get chatWithVendorSubtext => isArabic ? 'يمكنك الاستفسار عن تفاصيل طلبك' : 'Inquire about your order details';
   String get menu => isArabic ? 'القائمة' : 'Menu';

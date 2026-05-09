@@ -295,9 +295,35 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
       ),
       child: Row(
         children: [
-          _switcherButton(s.delivery, 'delivery', Icons.delivery_dining_rounded, isDark),
-          _switcherButton(s.ride, 'ride', Icons.person_rounded, isDark),
+          _switcherButton(s.delivery, 'delivery', isDark),
+          _switcherButton(s.ride, 'ride', isDark),
         ],
+      ),
+    );
+  }
+
+  Widget _switcherButton(String label, String value, bool isDark) {
+    final isSelected = _serviceType == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _serviceType = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                fontSize: 13,
+                color: isSelected ? Colors.white : Colors.grey.shade500,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -314,42 +340,6 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
     );
   }
 
-  Widget _switcherButton(String label, String value, IconData icon, bool isDark) {
-    final isSelected = _serviceType == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() {
-          _serviceType = value;
-          if (value == 'ride') _selectedVehicle = 'car';
-        }),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 18, color: isSelected ? Colors.white : Colors.grey.shade500),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    color: isSelected ? Colors.white : Colors.grey.shade500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _vehicleOption(String label, IconData fallbackIcon, String type, bool isDark, String? customIconUrl) {
     final isSelected = _selectedVehicle == type;
 
@@ -361,15 +351,15 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              width: 76,
-              height: 76,
+              width: 86,
+              height: 86,
               decoration: BoxDecoration(
                 color: isSelected 
                     ? AppColors.primary 
                     : (isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade100),
                 shape: BoxShape.circle,
                 boxShadow: isSelected 
-                    ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6))] 
+                    ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))] 
                     : [],
                 border: Border.all(
                   color: isSelected ? AppColors.primary : (isDark ? Colors.white10 : Colors.grey.shade200),
@@ -381,14 +371,14 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
                     ? ClipOval(
                         child: CachedNetworkImage(
                           imageUrl: ImageUtils.formatImageUrl(customIconUrl),
-                          width: 52,
-                          height: 52,
+                          width: 72,
+                          height: 72,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Icon(fallbackIcon, size: 32, color: isSelected ? Colors.white : Colors.grey),
-                          errorWidget: (context, url, error) => Icon(fallbackIcon, size: 32, color: isSelected ? Colors.white : Colors.grey),
+                          placeholder: (context, url) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.white : Colors.grey),
+                          errorWidget: (context, url, error) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.white : Colors.grey),
                         ),
                       )
-                    : Icon(fallbackIcon, size: 36, color: isSelected ? Colors.white : Colors.grey),
+                    : Icon(fallbackIcon, size: 52, color: isSelected ? Colors.white : Colors.grey),
               ),
             ),
             const SizedBox(height: 12),
@@ -397,7 +387,7 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
                 color: isSelected ? AppColors.primary : (isDark ? Colors.white70 : Colors.black87),
-                fontSize: 14,
+                fontSize: 15,
               ),
             ),
           ],
