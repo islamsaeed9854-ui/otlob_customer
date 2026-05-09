@@ -44,7 +44,7 @@ class MediaService {
       uiSettings: [
         AndroidUiSettings(
           toolbarTitle: 'Crop Image',
-          toolbarColor: const Color(0xFFFF5A00),
+          toolbarColor: const Color(0xFFFBBB2B),
           toolbarWidgetColor: Colors.white,
           initAspectRatio: CropAspectRatioPreset.square,
           lockAspectRatio: true,

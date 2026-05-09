@@ -104,7 +104,7 @@ class AppTheme {
       ),
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: AppColors.backgroundDark,
         elevation: 0,
         scrolledUnderElevation: 1,
         centerTitle: true,
@@ -128,7 +128,7 @@ class AppTheme {
       elevatedButtonTheme: _buildElevatedButtonTheme(),
 
       inputDecorationTheme: _buildInputDecorationTheme(
-        fillColor: AppColors.surfaceDark,
+        fillColor: AppColors.fieldDark,
         borderColor: AppColors.borderDark,
         textColor: AppColors.textPrimaryDark,
       ),
@@ -142,7 +142,7 @@ class AppTheme {
       dividerTheme: const DividerThemeData(thickness: 1, space: 1),
 
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.surfaceDark,
+        backgroundColor: AppColors.bottomNavDark,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondaryDark,
         type: BottomNavigationBarType.fixed,
