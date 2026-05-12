@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/widgets/custom_chat_icon.dart';
 
 import '../../../../core/utils/image_utils.dart';
 
@@ -191,8 +193,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(children: [
-                    const Icon(Icons.location_on_rounded,
-                        color: AppColors.primary, size: 16),
+                    const Icon(Icons.near_me_rounded,
+                        color: AppColors.primary, size: 14),
                     const SizedBox(width: 4),
                     Text(s.deliverTo,
                         style: TextStyle(
@@ -228,7 +230,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.monetization_on_rounded, color: AppColors.primary, size: 20),
+                   const Icon(Icons.stars_rounded, color: AppColors.primary, size: 18),
                   const SizedBox(width: 4),
                   Text(
                     '1,250',
@@ -256,7 +258,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 onTap: () => context.push('/notifications'),
                 child: Stack(
                   children: [
-                    Icon(Icons.notifications_none_rounded,
+                    Icon(Icons.notifications_active_rounded,
                         size: 24, color: isDark ? Colors.white : AppColors.textPrimaryLight),
                     PositionedDirectional(
                       end: 2,
@@ -553,12 +555,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   const SizedBox(height: 6),
                   Text(
                     s.customDeliveryBannerSub,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 13,
-                      height: 1.4,
+                    maxLines: 3,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      height: 1.3,
+                      shadows: [Shadow(blurRadius: 8, color: Colors.black26)]
                     ),
                   ),
                   const Spacer(),
@@ -901,10 +904,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.home_filled, Icons.home_outlined, s.navHome, true),
-              _buildNavItem(1, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_outline_rounded, s.navChat, false),
-              _buildNavItem(3, Icons.receipt_long, Icons.receipt_long_outlined, s.navOrders, false),
-              _buildNavItem(4, Icons.person_rounded, Icons.person_outline_rounded, s.navProfile, false),
+              _buildNavItem(0, LucideIcons.home, LucideIcons.home, s.navHome, true),
+              _buildNavItem(1, LucideIcons.messageSquare, LucideIcons.messageSquare, s.navChat, false),
+              _buildNavItem(3, LucideIcons.shoppingBag, LucideIcons.shoppingBag, s.navOrders, false),
+              _buildNavItem(4, LucideIcons.user, LucideIcons.user, s.navProfile, false),
             ],
           ),
         ),
@@ -912,7 +915,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, bool isSelected) {
+  Widget _buildNavItem(int index, dynamic activeIcon, dynamic inactiveIcon, String label, bool isSelected) {
     final color = isSelected ? AppColors.primary : Colors.grey;
     return InkWell(
       onTap: () {
@@ -923,9 +926,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(isSelected ? activeIcon : inactiveIcon, color: color, size: 26),
+          index == 1 
+            ? CustomChatIcon(size: 24, color: color)
+            : Icon(isSelected ? activeIcon as IconData : inactiveIcon as IconData, color: color, size: 24),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label, 
+            style: TextStyle(
+              color: color, 
+              fontSize: 11, 
+              fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+              letterSpacing: -0.2,
+            ),
+          ),
         ],
       ),
     );

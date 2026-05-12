@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../../../../core/widgets/custom_chat_icon.dart';
 import '../../../../core/utils/image_utils.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
@@ -18,7 +20,15 @@ class VendorDetailScreen extends ConsumerStatefulWidget {
 
 class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
   String _selectedCategory = 'all';
+  String _searchQuery = '';
   bool _initialProductShown = false;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +55,19 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           }
         }
         
-        final filteredMenu = _selectedCategory == 'all' 
-            ? allMenu 
-            : allMenu.where((item) => (item as Map<String, dynamic>)['category'] == _selectedCategory).toList();
+        final filteredMenu = allMenu.where((item) {
+          final map = item as Map<String, dynamic>;
+          final matchesCategory = _selectedCategory == 'all' || map['category'] == _selectedCategory;
+          
+          if (_searchQuery.isEmpty) return matchesCategory;
+
+          final isAr = Localizations.localeOf(context).languageCode == 'ar';
+          final name = (isAr ? (map['nameAr'] ?? map['name'] ?? '') : (map['name'] ?? '')).toString().toLowerCase();
+          final description = (isAr ? (map['descriptionAr'] ?? map['description'] ?? '') : (map['description'] ?? '')).toString().toLowerCase();
+          final searchLower = _searchQuery.toLowerCase();
+          
+          return matchesCategory && (name.contains(searchLower) || description.contains(searchLower));
+        }).toList();
 
         return Scaffold(
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -106,7 +126,15 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                         ]),
                       ]),
                       const SizedBox(height: 4),
-                      Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                      Text(
+                        description, 
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey.shade700, 
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       Row(children: [
                         _chip(Icons.access_time_rounded, fullVendor['deliveryTime']?.toString() ?? ''),
@@ -119,7 +147,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () => context.push('/chat/vendor/${fullVendor['id']}', extra: {'title': name}),
-                          icon: const Icon(Icons.chat_bubble_outline, size: 16, color: AppColors.primary),
+                          icon: const CustomChatIcon(size: 18, color: AppColors.primary),
                           label: Text(
                             s.chatWithVendor,
                             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
@@ -153,17 +181,51 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                 ),
               ),
 
-              if (isPharmacy)
+              if (fullVendor['categories'] != null && (fullVendor['categories'] as List).isNotEmpty)
                 SliverToBoxAdapter(
-                  child: _buildPharmacyCategories(s, isDark),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 10, bottom: 20),
+                    child: _buildCategoryList(fullVendor['categories'] as List<dynamic>, s, isDark),
+                  ),
                 ),
 
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                  child: Text(
-                    isPharmacy ? s.products : s.menu, 
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isPharmacy ? s.products : s.menu, 
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) => setState(() => _searchQuery = value),
+                          decoration: InputDecoration(
+                            hintText: s.search,
+                            prefixIcon: Icon(Icons.search, size: 20, color: isDark ? Colors.white70 : Colors.grey),
+                            suffixIcon: _searchQuery.isNotEmpty 
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                  )
+                                : null,
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -287,33 +349,75 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildPharmacyCategories(AppStrings s, bool isDark) {
-    final categories = [
-      {'id': 'all', 'label': s.catAll, 'icon': Icons.grid_view_rounded},
-      {'id': 'medicines', 'label': s.catMedicines, 'icon': Icons.healing_rounded},
-      {'id': 'cosmetics', 'label': s.catCosmetics, 'icon': Icons.face_retouching_natural_rounded},
+  Widget _buildCategoryList(List<dynamic> categories, AppStrings s, bool isDark) {
+    final isAr = Localizations.localeOf(context).languageCode == 'ar';
+    
+    // Add "All" category at the beginning
+    final allCategories = [
+      {'id': 'all', 'name': s.catAll, 'nameAr': 'الكل', 'icon': Icons.grid_view_rounded},
+      ...categories,
     ];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
-        children: categories.map((cat) {
-          final isSelected = _selectedCategory == cat['id'];
+        children: allCategories.map((cat) {
+          final catId = cat['id']?.toString() ?? '';
+          final isSelected = _selectedCategory == catId;
+          final label = isAr ? (cat['nameAr'] ?? cat['name'] ?? '') : (cat['name'] ?? '');
+          
           return GestureDetector(
-            onTap: () => setState(() => _selectedCategory = cat['id'] as String),
-            child: Container(
+            onTap: () => setState(() => _selectedCategory = catId),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               margin: const EdgeInsetsDirectional.only(end: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade800 : Colors.white),
+                color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.shade300),
+                boxShadow: isSelected ? [
+                  BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))
+                ] : null,
               ),
               child: Row(children: [
-                Icon(cat['icon'] as IconData, size: 24, color: isSelected ? Colors.white : Colors.grey),
-                const SizedBox(width: 8),
-                Text(cat['label'] as String, style: TextStyle(color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87), fontWeight: FontWeight.bold)),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.white.withOpacity(0.2) : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
+                    shape: BoxShape.circle,
+                  ),
+                  child: ClipOval(
+                    child: cat['iconUrl'] != null && cat['iconUrl'].toString().isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: ImageUtils.formatImageUrl(cat['iconUrl'] as String?),
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.category_rounded, 
+                            size: 20, 
+                            color: isSelected ? Colors.white : AppColors.primary
+                          ),
+                        )
+                      : Icon(
+                          (cat['icon'] as IconData?) ?? Icons.grid_view_rounded, 
+                          size: 20, 
+                          color: isSelected ? Colors.white : AppColors.primary
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  label, 
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : (isDark ? Colors.white : Colors.black87), 
+                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ]),
             ),
           );

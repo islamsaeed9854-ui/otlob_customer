@@ -145,7 +145,17 @@ class VendorCard extends ConsumerWidget {
                       ]),
                     ]),
                     const SizedBox(height: 4),
-                    Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 13), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(
+                      description, 
+                      style: TextStyle(
+                        color: isDark ? Colors.white70 : Colors.grey.shade700, 
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 1.2,
+                      ), 
+                      maxLines: 2, 
+                      overflow: TextOverflow.ellipsis
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,

@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/entities/message.dart';
+import '../../../../core/l10n/app_strings.dart';
+import '../../../../core/providers/app_settings_provider.dart';
 
 part 'chat_provider.g.dart';
 
@@ -22,14 +24,17 @@ class ChatArgs {
 class Chat extends _$Chat {
   @override
   List<Message> build(ChatArgs args) {
+    final lang = ref.watch(appSettingsProvider).languageCode;
+    final s = AppStrings(lang == 'ar');
+
     return [
       Message(
         id: '1',
-        content: args.type == 'support' ? 'Hello! How can we help you today?' : 'Hello! Your order is being prepared.',
+        content: args.type == 'support' ? s.supportGreeting : s.vendorGreeting,
         type: MessageType.text,
         isMe: false,
         timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        senderName: args.type == 'support' ? 'Support' : 'Vendor',
+        senderName: args.type == 'support' ? (lang == 'ar' ? 'الدعم' : 'Support') : (lang == 'ar' ? 'المتجر' : 'Vendor'),
       ),
     ];
   }

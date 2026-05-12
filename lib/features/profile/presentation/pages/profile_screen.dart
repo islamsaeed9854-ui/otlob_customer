@@ -54,8 +54,8 @@ class ProfileScreen extends ConsumerWidget {
                   _buildToggleTile(
                     icon: Icons.dark_mode_rounded,
                     title: s.darkMode,
-                    subtitle: settingsState.themeMode == ThemeMode.dark ? s.on : s.off,
-                    value: settingsState.themeMode == ThemeMode.dark,
+                    subtitle: (Theme.of(context).brightness == Brightness.dark) ? s.on : s.off,
+                    value: Theme.of(context).brightness == Brightness.dark,
                     onChanged: (val) => ref.read(appSettingsProvider.notifier).changeTheme(val ? ThemeMode.dark : ThemeMode.light),
                   ),
                 ]),

@@ -47,8 +47,8 @@ class AppStrings {
   String get retry => isArabic ? 'إعادة المحاولة' : 'Retry';
   String get noResults => isArabic ? 'لا توجد نتائج' : 'No results found';
   String get orderNow => isArabic ? 'اطلب الآن' : 'Order Now';
-  String get chatWithVendor => isArabic ? 'دردشة مع البائع' : 'Chat with Vendor';
-  String get chatWithVendorSubtext => isArabic ? 'يمكنك الاستفسار عن تفاصيل طلبك' : 'Inquire about your order details';
+  String get chatWithVendor => isArabic ? 'تواصل لطلب منتجات بشكل مباشر' : 'Contact the store to order products directly';
+  String get chatWithVendorSubtext => isArabic ? 'يمكنك طلب منتج غير متواجد بالقائمة.' : 'You can request a product that is not on the list.';
   String get menu => isArabic ? 'القائمة' : 'Menu';
   String get viewCart => isArabic ? 'عرض السلة' : 'View Cart';
   String get addedToCart => isArabic ? 'تمت الإضافة للسلة' : 'Added to cart';
@@ -165,6 +165,9 @@ class AppStrings {
   String get nearbyPrefix => isArabic ? 'متاجر ' : 'Nearby ';
   String get nearbySuffix => isArabic ? ' القريبة' : '';
   String get appName => isArabic ? 'أطلب' : 'OTLOB';
+  String get search => isArabic ? 'بحث' : 'Search';
+  String get supportGreeting => isArabic ? 'مرحباً! كيف يمكننا مساعدتك اليوم؟' : 'Hello! How can we help you today?';
+  String get vendorGreeting => isArabic ? 'تواصل لطلب منتجات بشكل مباشر!' : 'Contact to order products directly!';
 
   List<List<String>> get promoBanners => isArabic ? [
     ['🔥 خصم 50% على أول طلب!', 'كود: OTLOB50', 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600&auto=format&fit=crop'],
