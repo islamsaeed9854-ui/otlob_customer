@@ -17,21 +17,32 @@ class SocketService {
   final Logger _logger = Logger();
 
   void initSocket(String userToken) {
+    // If already connected, don't re-init unless we want to force a new token
     if (_socket != null && _socket!.connected) return;
 
-    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'https://ws.otlob-egy.online';
+    _socket?.dispose(); // Clean up old socket
+
+    var baseUrl = dotenv.env['SOCKET_URL'] ?? 'https://ws.otlob-egy.online';
+    if (baseUrl.endsWith('/')) {
+      baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+    }
+
+    print('📡 Attempting to connect to Socket: $baseUrl/events');
 
     _socket = io.io(
       '$baseUrl/events',
       io.OptionBuilder()
           .setTransports(['websocket'])
-          .disableAutoConnect()
           .setAuth({'token': userToken})
           .build(),
     );
 
     _socket?.connect();
-    _socket?.onConnect((_) => _logger.i('✅ Socket connected'));
+    _socket?.onConnect((_) {
+      _logger.i('✅ Socket connected');
+      print('👤 Connected with Token: ${userToken.substring(0, 20)}...');
+    });
+    _socket?.onConnectError((err) => _logger.e('❌ Socket Connect Error: $err'));
     _socket?.onDisconnect((_) => _logger.w('❌ Socket disconnected'));
   }
 

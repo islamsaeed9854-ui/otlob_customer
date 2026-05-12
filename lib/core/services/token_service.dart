@@ -124,6 +124,17 @@ class TokenService {
     return JwtDecoder.isExpired(access);
   }
 
+  Future<String?> getUserId() async {
+    final access = await getAccessToken();
+    if (access == null) return null;
+    try {
+      final decodedToken = JwtDecoder.decode(access);
+      return decodedToken['sub'] as String?;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<bool> isUserVerified() async {
     final access = await getAccessToken();
     if (access == null) return false;

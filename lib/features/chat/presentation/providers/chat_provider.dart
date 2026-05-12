@@ -1,7 +1,11 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../domain/entities/message.dart';
 import '../../../../core/network/network_providers.dart';
+import '../../../../core/services/token_service.dart';
+import '../../../../core/services/socket_service.dart';
 import 'package:dio/dio.dart';
+import '../../../auth/data/repositories/auth_repository_impl.dart';
+import '../../../auth/domain/repositories/auth_repository.dart';
 
 part 'chat_provider.g.dart';
 
@@ -23,10 +27,13 @@ class ChatArgs {
 @Riverpod(keepAlive: true)
 class Chat extends _$Chat {
   String? _conversationId;
+  String? _currentUserId;
 
   @override
-  FutureOr<List<Message>> build(ChatArgs args) async {
+  Future<List<Message>> build(ChatArgs args) async {
     final dio = ref.watch(dioProvider);
+    final tokenService = ref.read(tokenServiceProvider);
+    _currentUserId = await tokenService.getUserId();
     
     try {
       // 1. Get or Create Conversation
@@ -42,23 +49,49 @@ class Chat extends _$Chat {
         response = await dio.get('/chat/conversations/${args.id}');
       }
 
-      final conversation = response.data;
+      final conversation = response.data['data'];
       _conversationId = conversation['id'];
 
-      // 3. Listen for real-time messages
+      // 3. Initialize Socket and Listen for real-time messages
       final socket = ref.read(socketServiceProvider);
+      final accessToken = await ref.read(tokenServiceProvider).getAccessToken();
+      if (accessToken != null) {
+        var isExpired = await ref.read(tokenServiceProvider).isAccessTokenExpired();
+        var currentToken = accessToken;
+        
+        if (isExpired) {
+          print('🔄 ChatProvider: Token expired, attempting refresh...');
+          try {
+            currentToken = await ref.read(authRepositoryProvider).refreshToken();
+            print('✅ ChatProvider: Token refreshed successfully');
+            isExpired = false;
+          } catch (e) {
+            print('❌ ChatProvider: Token refresh failed: $e');
+          }
+        }
+
+        print('🔌 ChatProvider: Initializing socket for conversation $_conversationId');
+        print('⏳ ChatProvider: Token is expired: $isExpired');
+        socket.initSocket(currentToken);
+      } else {
+        print('⚠️ ChatProvider: No access token found for socket');
+      }
+
+      socket.off('chat.message'); // Prevent duplicate listeners
       socket.on('chat.message', (data) {
+        print('📥 Customer Socket Message Received: $data');
         if (data['conversationId'] == _conversationId) {
+          print('✅ Adding real-time message to customer list');
           final newMessage = Message(
             id: data['messageId'],
             content: data['text'] ?? '',
             type: _mapMessageType(data['type']),
-            isMe: data['senderId'] == 'CURRENT_USER_ID', // This needs to be checked against real user ID
+            isMe: data['senderId'] == _currentUserId,
             timestamp: DateTime.parse(data['createdAt']),
-            senderName: 'Other', // Could be expanded
+            senderName: data['senderName'] ?? 'Support', 
+            mediaUrl: _getFullUrl(data['mediaUrl']),
           );
           
-          // Check if message already exists (from optimistic update)
           ref.read(chatProvider(args).notifier)._addRealtimeMessage(newMessage);
         }
       });
@@ -76,8 +109,25 @@ class Chat extends _$Chat {
 
   void _addRealtimeMessage(Message message) {
     state.whenData((messages) {
+      // Check if we already have this message by ID
       if (messages.any((m) => m.id == message.id)) return;
-      state = AsyncData([...messages, message]);
+
+      // Remove the optimistic/temporary message that corresponds to this one.
+      // If it's a media message, try to match by mediaUrl.
+      // If it's a text message, match by content.
+      final filteredMessages = messages.where((m) {
+        if (!m.id.startsWith('temp-') && !m.id.startsWith('upload-')) return true;
+        
+        // Only remove our own optimistic messages if the incoming message is also from us
+        if (!message.isMe) return true;
+
+        if (message.mediaUrl != null && m.mediaUrl == message.mediaUrl) return false;
+        if (message.content.isNotEmpty && m.content == message.content) return false;
+        
+        return true;
+      }).toList();
+      
+      state = AsyncData([message, ...filteredMessages]);
     });
   }
 
@@ -87,61 +137,189 @@ class Chat extends _$Chat {
     
     try {
       final response = await dio.get('/chat/conversations/$_conversationId/messages');
-      final List<dynamic> data = response.data['messages'];
+      final List<dynamic> data = response.data['data']['messages'];
       
-      return data.map((m) => Message(
+      final ordered = data.map((m) => Message(
         id: m['id'],
         content: m['text'] ?? '',
         type: _mapMessageType(m['type']),
-        isMe: m['sender']['role'] == 'CUSTOMER', // Simplified check
+        isMe: m['sender']['id'] == _currentUserId, 
         timestamp: DateTime.parse(m['createdAt']),
         senderName: m['sender']['name'],
+        mediaUrl: _getFullUrl(m['mediaUrl']),
       )).toList();
+      
+      return ordered.reversed.toList(); // Newest first for reversed list
     } catch (e) {
       return [];
     }
   }
 
+  String? _getFullUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    
+    final baseUrl = ref.read(dioProvider).options.baseUrl;
+    // Remove trailing slash from baseUrl and leading slash from path
+    final cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    
+    return '$cleanBaseUrl$cleanPath';
+  }
+
   MessageType _mapMessageType(String? type) {
-    switch (type) {
+    switch (type?.toUpperCase()) {
       case 'IMAGE': return MessageType.image;
       case 'VIDEO': return MessageType.video;
       case 'AUDIO': return MessageType.audio;
+      case 'FILE': return MessageType.file;
       default: return MessageType.text;
     }
   }
 
-  Future<void> sendMessage(String content, {MessageType type = MessageType.text}) async {
+  Future<String?> uploadMedia(String filePath) async {
+    if (_conversationId == null) return null;
+    final dio = ref.read(dioProvider);
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      final response = await dio.post(
+        '/chat/conversations/$_conversationId/messages/upload',
+        data: formData,
+      );
+      final responseData = response.data;
+      String? url;
+      if (responseData['data'] != null && responseData['data']['url'] != null) {
+        url = responseData['data']['url'];
+      } else {
+        url = responseData['url'];
+      }
+      return _getFullUrl(url);
+    } catch (e) {
+      print('❌ ChatProvider: Upload error: $e');
+      return null;
+    }
+  }
+
+  Future<void> sendMedia(String filePath, MessageType type) async {
+    if (_conversationId == null) return;
+
+    final tempId = 'upload-${DateTime.now().millisecondsSinceEpoch}';
+    final optimisticMessage = Message(
+      id: tempId,
+      content: 'Uploading...',
+      type: type,
+      isMe: true,
+      timestamp: DateTime.now(),
+      senderName: 'Me',
+      mediaUrl: null, // Still uploading
+    );
+
+    state.whenData((messages) {
+      state = AsyncData([optimisticMessage, ...messages]);
+    });
+
+    final mediaUrl = await uploadMedia(filePath);
+    
+    if (mediaUrl != null) {
+      await sendMessage('', type: type, mediaUrl: mediaUrl, tempIdToRemove: tempId);
+    } else {
+      // Remove the "Uploading..." message if upload failed
+      state.whenData((messages) {
+        state = AsyncData(messages.where((m) => m.id != tempId).toList());
+      });
+    }
+  }
+
+  Future<void> sendMessage(String content, {MessageType type = MessageType.text, String? mediaUrl, String? tempIdToRemove}) async {
     if (_conversationId == null) return;
     final dio = ref.read(dioProvider);
 
+    final tempId = tempIdToRemove ?? 'temp-${DateTime.now().millisecondsSinceEpoch}';
+    
     final optimisticMessage = Message(
-      id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      id: tempId,
       content: content,
       type: type,
       isMe: true,
       timestamp: DateTime.now(),
       senderName: 'Me',
+      mediaUrl: mediaUrl,
     );
 
-    // Update state optimistically if possible, but build is FutureOr
-    final previousState = await future;
-    state = AsyncData([...previousState, optimisticMessage]);
+    state.whenData((messages) {
+      // If we are replacing an existing temp message (like from sendMedia), 
+      // we filter it out first if it's not already handled by the tempId logic
+      final filtered = messages.where((m) => m.id != tempIdToRemove).toList();
+      state = AsyncData([optimisticMessage, ...filtered]);
+    });
 
     try {
-      await dio.post(
+      final response = await dio.post(
         '/chat/conversations/$_conversationId/messages',
         data: {
-          'type': 'TEXT',
-          'text': content,
+          'type': type.name.toUpperCase(),
+          'text': content.isEmpty ? null : content,
+          'mediaUrl': mediaUrl,
         },
       );
-      // Refresh messages to get real IDs and server timestamps
+      
+      // Instead of full refresh, let's try to update the message with real data if possible
+      // But for now, a refresh is safer if the backend generates IDs/timestamps
       final updatedMessages = await _fetchMessages();
       state = AsyncData(updatedMessages);
     } catch (e) {
-      // Revert or show error
-      state = AsyncData(previousState);
+      print('❌ ChatProvider: Send error: $e');
+      // On error, we still refresh to be in sync with server
+      final updatedMessages = await _fetchMessages();
+      state = AsyncData(updatedMessages);
+    }
+  }
+
+  Future<void> deleteMessage(String messageId) async {
+    if (_conversationId == null) return;
+
+    // Optimistically remove from state
+    state.whenData((messages) {
+      state = AsyncData(messages.where((m) => m.id != messageId).toList());
+    });
+
+    // If it's a temporary message, we don't need to call the API
+    if (messageId.startsWith('temp-') || messageId.startsWith('upload-')) {
+      return;
+    }
+
+    final dio = ref.read(dioProvider);
+    try {
+      await dio.delete('/chat/conversations/$_conversationId/messages/$messageId');
+    } catch (e) {
+      print('❌ ChatProvider: Delete error: $e');
+      // On error, we could optionally refresh the list to restore the message if the server says it still exists
+      // final updatedMessages = await _fetchMessages();
+      // state = AsyncData(updatedMessages);
+    }
+  }
+
+  Future<void> editMessage(String messageId, String newContent) async {
+    if (_conversationId == null) return;
+    final dio = ref.read(dioProvider);
+    try {
+      await dio.patch(
+        '/chat/conversations/$_conversationId/messages/$messageId', 
+        data: {'text': newContent}
+      );
+      state.whenData((messages) {
+        final updated = messages.map((m) {
+          if (m.id == messageId) {
+            return m.copyWith(content: newContent);
+          }
+          return m;
+        }).toList();
+        state = AsyncData(updated);
+      });
+    } catch (e) {
+      print('❌ ChatProvider: Edit error: $e');
     }
   }
 }

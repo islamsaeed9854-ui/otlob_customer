@@ -159,6 +159,7 @@ class AppStrings {
   String get featuredSuggestions => isArabic ? 'اقتراحات مميزة' : 'Featured Suggestions';
   String get searchErrorPrefix => isArabic ? 'خطأ في البحث: ' : 'Search error: ';
   String get typeAMessage => isArabic ? 'اكتب رسالة...' : 'Type a message...';
+  String get onlyImagesAllowed => isArabic ? 'يسمح بالصور فقط.' : 'Only images are allowed.';
   String get orderShort => isArabic ? 'اطلب' : 'Order';
   String get proLabel => isArabic ? 'برو' : 'PRO';
   String get nearbyStores => isArabic ? 'المتاجر القريبة' : 'Nearby Stores';
@@ -179,4 +180,12 @@ class AppStrings {
 
   String translateStatus(String? status) => status ?? '';
   String translateEta(String? eta) => eta ?? '';
+
+  String get edit => isArabic ? 'تعديل' : 'Edit';
+  String get delete => isArabic ? 'حذف' : 'Delete';
+  String get voiceMessage => isArabic ? 'رسالة صوتية' : 'Voice Message';
+  String get releaseToSend => isArabic ? 'اترك للإرسال' : 'Release to send';
+  String get uploading => isArabic ? 'جاري الرفع...' : 'Uploading...';
+  String get deleteConfirmTitle => isArabic ? 'حذف الرسالة' : 'Delete Message';
+  String get deleteConfirmBody => isArabic ? 'هل أنت متأكد من حذف هذه الرسالة؟' : 'Are you sure you want to delete this message?';
 }

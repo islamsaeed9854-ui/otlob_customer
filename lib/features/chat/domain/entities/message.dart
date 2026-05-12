@@ -8,6 +8,7 @@ class Message {
   final DateTime timestamp;
   final String? senderName;
   final String? senderProfilePic;
+  final String? mediaUrl;
 
   Message({
     required this.id,
@@ -17,5 +18,28 @@ class Message {
     required this.timestamp,
     this.senderName,
     this.senderProfilePic,
+    this.mediaUrl,
   });
+
+  Message copyWith({
+    String? id,
+    String? content,
+    MessageType? type,
+    bool? isMe,
+    DateTime? timestamp,
+    String? senderName,
+    String? senderProfilePic,
+    String? mediaUrl,
+  }) {
+    return Message(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      type: type ?? this.type,
+      isMe: isMe ?? this.isMe,
+      timestamp: timestamp ?? this.timestamp,
+      senderName: senderName ?? this.senderName,
+      senderProfilePic: senderProfilePic ?? this.senderProfilePic,
+      mediaUrl: mediaUrl ?? this.mediaUrl,
+    );
+  }
 }

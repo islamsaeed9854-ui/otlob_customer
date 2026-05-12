@@ -12,7 +12,7 @@ part of 'chat_provider.dart';
 @ProviderFor(Chat)
 final chatProvider = ChatFamily._();
 
-final class ChatProvider extends $NotifierProvider<Chat, List<Message>> {
+final class ChatProvider extends $AsyncNotifierProvider<Chat, List<Message>> {
   ChatProvider._({
     required ChatFamily super.from,
     required ChatArgs super.argument,
@@ -38,14 +38,6 @@ final class ChatProvider extends $NotifierProvider<Chat, List<Message>> {
   @override
   Chat create() => Chat();
 
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Message> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Message>>(value),
-    );
-  }
-
   @override
   bool operator ==(Object other) {
     return other is ChatProvider && other.argument == argument;
@@ -57,15 +49,15 @@ final class ChatProvider extends $NotifierProvider<Chat, List<Message>> {
   }
 }
 
-String _$chatHash() => r'c62c905a7492513970968efb59c75c8b2fd3ffdf';
+String _$chatHash() => r'dfd553b4bf5162b322d10164eb42c95ca620092f';
 
 final class ChatFamily extends $Family
     with
         $ClassFamilyOverride<
           Chat,
+          AsyncValue<List<Message>>,
           List<Message>,
-          List<Message>,
-          List<Message>,
+          FutureOr<List<Message>>,
           ChatArgs
         > {
   ChatFamily._()
@@ -84,20 +76,20 @@ final class ChatFamily extends $Family
   String toString() => r'chatProvider';
 }
 
-abstract class _$Chat extends $Notifier<List<Message>> {
+abstract class _$Chat extends $AsyncNotifier<List<Message>> {
   late final _$args = ref.$arg as ChatArgs;
   ChatArgs get args => _$args;
 
-  List<Message> build(ChatArgs args);
+  FutureOr<List<Message>> build(ChatArgs args);
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<List<Message>, List<Message>>;
+    final ref = this.ref as $Ref<AsyncValue<List<Message>>, List<Message>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<List<Message>, List<Message>>,
-              List<Message>,
+              AnyNotifier<AsyncValue<List<Message>>, List<Message>>,
+              AsyncValue<List<Message>>,
               Object?,
               Object?
             >;

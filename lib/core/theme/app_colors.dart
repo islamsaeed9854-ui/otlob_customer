@@ -28,4 +28,16 @@ class AppColors {
 
   static const Color textHint = Color(0xFF9E9E9E);
   static const Color transparent = Colors.transparent;
+
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [primary, primaryVariant],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient accentGradient = LinearGradient(
+    colors: [Color(0xFF6366F1), Color(0xFF818CF8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
