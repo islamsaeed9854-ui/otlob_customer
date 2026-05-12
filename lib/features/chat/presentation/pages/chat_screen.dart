@@ -11,10 +11,13 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../../../core/utils/image_utils.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../../domain/entities/message.dart';
 import '../providers/chat_provider.dart';
+import '../widgets/order_offer_bottom_sheet.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -400,11 +403,125 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: Text(msg.content, style: TextStyle(color: msg.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87))),
               ),
-            if (msg.type == MessageType.text && msg.content.isNotEmpty)
+            if (msg.type == MessageType.text && msg.content.isNotEmpty && msg.metadata?['type'] != 'OFFER')
                Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                 child: Text(msg.content, style: TextStyle(color: msg.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87))),
               ),
+            if (msg.metadata?['type'] == 'OFFER')
+              _buildOfferBubble(msg, isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOfferBubble(Message msg, bool isDark) {
+    final s = AppStrings.of(context);
+    final product = msg.metadata?['product'] as Map<String, dynamic>?;
+    if (product == null) return const SizedBox();
+
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => OrderOfferBottomSheet(
+            product: product,
+            vendorId: widget.conversationId, // In vendor chat, this is the vendorId
+            vendorName: widget.title, // In vendor chat, this is the vendorName
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: msg.isMe ? Colors.white.withOpacity(0.1) : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: msg.isMe ? Colors.white.withOpacity(0.2) : AppColors.primary.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(LucideIcons.package, color: msg.isMe ? Colors.white : AppColors.primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    s.offerTitle,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: msg.isMe ? Colors.white : AppColors.primary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (product['image'] != null && product['image'].toString().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: CachedNetworkImage(
+                    imageUrl: ImageUtils.formatImageUrl(product['image'] as String?),
+                    width: double.infinity,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      height: 120,
+                      color: Colors.grey.withOpacity(0.1),
+                      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                  ),
+                ),
+              ),
+            Text(
+              product['name'] ?? '',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: msg.isMe ? Colors.white : (isDark ? Colors.white : Colors.black87),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${product['price']} ${s.egp}',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: msg.isMe ? Colors.white70 : AppColors.primary,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => OrderOfferBottomSheet(
+                      product: product,
+                      vendorId: widget.conversationId,
+                      vendorName: widget.title,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: msg.isMe ? Colors.white : AppColors.primary,
+                  foregroundColor: msg.isMe ? AppColors.primary : Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 0,
+                ),
+                child: Text(s.viewOffer, style: const TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
           ],
         ),
       ),

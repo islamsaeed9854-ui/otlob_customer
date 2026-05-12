@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/app_settings_provider.dart'; 
+import 'core/providers/global_message_listener.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 
@@ -14,6 +15,9 @@ class App extends ConsumerWidget {
 
     final appSettings = ref.watch(appSettingsProvider);
     final router = ref.watch(appRouterProvider);
+    
+    // Initialize global listeners
+    ref.watch(globalMessageListenerProvider);
 
     return MaterialApp.router(
       title: 'Otlob',

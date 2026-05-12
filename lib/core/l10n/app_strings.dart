@@ -188,4 +188,9 @@ class AppStrings {
   String get uploading => isArabic ? 'جاري الرفع...' : 'Uploading...';
   String get deleteConfirmTitle => isArabic ? 'حذف الرسالة' : 'Delete Message';
   String get deleteConfirmBody => isArabic ? 'هل أنت متأكد من حذف هذه الرسالة؟' : 'Are you sure you want to delete this message?';
+  
+  String get offerTitle => isArabic ? 'عرض خاص من المتجر' : 'Special Store Offer';
+  String get viewOffer => isArabic ? 'عرض التفاصيل' : 'View Details';
+  String get confirmOrder => isArabic ? 'تأكيد الطلب' : 'Confirm Order';
+  String get cancelOrder => isArabic ? 'إلغاء' : 'Cancel';
 }

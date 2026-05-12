@@ -90,6 +90,7 @@ class Chat extends _$Chat {
             timestamp: DateTime.parse(data['createdAt']),
             senderName: data['senderName'] ?? 'Support', 
             mediaUrl: _getFullUrl(data['mediaUrl']),
+            metadata: data['metadata'],
           );
           
           ref.read(chatProvider(args).notifier)._addRealtimeMessage(newMessage);
@@ -147,6 +148,7 @@ class Chat extends _$Chat {
         timestamp: DateTime.parse(m['createdAt']),
         senderName: m['sender']['name'],
         mediaUrl: _getFullUrl(m['mediaUrl']),
+        metadata: m['metadata'],
       )).toList();
       
       return ordered.reversed.toList(); // Newest first for reversed list

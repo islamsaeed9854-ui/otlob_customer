@@ -9,6 +9,7 @@ class Message {
   final String? senderName;
   final String? senderProfilePic;
   final String? mediaUrl;
+  final Map<String, dynamic>? metadata;
 
   Message({
     required this.id,
@@ -19,6 +20,7 @@ class Message {
     this.senderName,
     this.senderProfilePic,
     this.mediaUrl,
+    this.metadata,
   });
 
   Message copyWith({
@@ -30,6 +32,7 @@ class Message {
     String? senderName,
     String? senderProfilePic,
     String? mediaUrl,
+    Map<String, dynamic>? metadata,
   }) {
     return Message(
       id: id ?? this.id,
@@ -40,6 +43,7 @@ class Message {
       senderName: senderName ?? this.senderName,
       senderProfilePic: senderProfilePic ?? this.senderProfilePic,
       mediaUrl: mediaUrl ?? this.mediaUrl,
+      metadata: metadata ?? this.metadata,
     );
   }
 }
