@@ -19,10 +19,10 @@ class SocketService {
   void initSocket(String userToken) {
     if (_socket != null && _socket!.connected) return;
 
-    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'http://10.0.2.2:3000';
+    final baseUrl = dotenv.env['SOCKET_URL'] ?? 'https://ws.otlob-egy.online';
 
     _socket = io.io(
-      baseUrl,
+      '$baseUrl/events',
       io.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
