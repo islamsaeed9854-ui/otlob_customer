@@ -18,6 +18,7 @@ import '../providers/home_controller.dart';
 import '../providers/home_state.dart';
 import '../widgets/vendor_card.dart';
 import '../widgets/vendor_card.dart';
+import 'package:otlob_customer/features/cart/presentation/providers/cart_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -70,6 +71,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final homeState = ref.watch(homeControllerProvider);
+    final cartState = ref.watch(cartProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -88,7 +90,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
       bottomNavigationBar: homeState.maybeWhen(
-        data: (data) => _buildBottomNav(context, data),
+        data: (data) => SizedBox(
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCartOverlay(context, cartState),
+              _buildBottomNav(context, data),
+            ],
+          ),
+        ),
         orElse: () => const SizedBox.shrink(),
       ),
     );
@@ -573,7 +585,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       child: ElevatedButton(
                         onPressed: () => context.push('/custom-delivery'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFFD700), // Gold
+                          backgroundColor: AppColors.primary,
                           foregroundColor: Colors.black,
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -908,6 +920,90 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               _buildNavItem(1, LucideIcons.messageSquare, LucideIcons.messageSquare, s.navChat, false),
               _buildNavItem(3, LucideIcons.shoppingBag, LucideIcons.shoppingBag, s.navOrders, false),
               _buildNavItem(4, LucideIcons.user, LucideIcons.user, s.navProfile, false),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCartOverlay(BuildContext context, CartState cartState) {
+    if (cartState.totalItems == 0) return const SizedBox.shrink();
+
+    final s = AppStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    double totalCartPrice = 0;
+    for (final vendorItems in cartState.vendorBaskets.values) {
+      for (final item in vendorItems) {
+        totalCartPrice += item.totalPrice;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1C) : Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white10 : Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+      ),
+      child: SizedBox(
+        height: 54,
+        child: ElevatedButton(
+          onPressed: () => context.push('/cart'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${cartState.totalItems}',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(LucideIcons.shoppingBag, color: Colors.black, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      s.viewCart,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '${totalCartPrice.toStringAsFixed(0)} ${s.egp}',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 15,
+                ),
+              ),
             ],
           ),
         ),

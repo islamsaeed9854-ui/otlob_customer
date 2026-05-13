@@ -103,32 +103,30 @@ class CartScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)))),
-            child: SizedBox(
-              width: double.infinity,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(s.total, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                        Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
-                      ],
-                    ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(s.total, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
+                    ],
                   ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () => context.push('/checkout', extra: vendorId),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () => context.push('/checkout', extra: vendorId),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
                   ),
-                ],
-              ),
+                  child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                ),
+              ],
             ),
           ),
         ],
@@ -149,15 +147,20 @@ class CartScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(item.product['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13), maxLines: 2),
+          if (item.selectedUnit == 'strip')
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(s.strip, style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.bold)),
+            ),
           const SizedBox(height: 4),
           Text('${item.totalPrice.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
         ])),
         Container(
           decoration: BoxDecoration(border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)), borderRadius: BorderRadius.circular(8)),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
-            _qtyBtn(Icons.remove, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity - 1)),
+            _qtyBtn(Icons.remove, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity - 1, unit: item.selectedUnit)),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('${item.quantity}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
-            _qtyBtn(Icons.add, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity + 1)),
+            _qtyBtn(Icons.add, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity + 1, unit: item.selectedUnit)),
           ]),
         ),
       ]),

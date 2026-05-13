@@ -193,4 +193,8 @@ class AppStrings {
   String get viewOffer => isArabic ? 'عرض التفاصيل' : 'View Details';
   String get confirmOrder => isArabic ? 'تأكيد الطلب' : 'Confirm Order';
   String get cancelOrder => isArabic ? 'إلغاء' : 'Cancel';
+  
+  String get package => isArabic ? 'عبوة' : 'Package';
+  String get strip => isArabic ? 'شريط' : 'Strip';
+  String get sellingUnit => isArabic ? 'وحدة البيع' : 'Selling Unit';
 }

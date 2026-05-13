@@ -7,6 +7,7 @@ class Message {
   final bool isMe;
   final DateTime timestamp;
   final String? senderName;
+  final String? senderRole;
   final String? senderProfilePic;
   final String? mediaUrl;
   final Map<String, dynamic>? metadata;
@@ -18,6 +19,7 @@ class Message {
     required this.isMe,
     required this.timestamp,
     this.senderName,
+    this.senderRole,
     this.senderProfilePic,
     this.mediaUrl,
     this.metadata,
@@ -30,6 +32,7 @@ class Message {
     bool? isMe,
     DateTime? timestamp,
     String? senderName,
+    String? senderRole,
     String? senderProfilePic,
     String? mediaUrl,
     Map<String, dynamic>? metadata,
@@ -41,6 +44,7 @@ class Message {
       isMe: isMe ?? this.isMe,
       timestamp: timestamp ?? this.timestamp,
       senderName: senderName ?? this.senderName,
+      senderRole: senderRole ?? this.senderRole,
       senderProfilePic: senderProfilePic ?? this.senderProfilePic,
       mediaUrl: mediaUrl ?? this.mediaUrl,
       metadata: metadata ?? this.metadata,

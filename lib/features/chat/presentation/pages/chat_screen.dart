@@ -358,7 +358,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             if (!msg.isMe)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4, left: 4),
-                child: Text(msg.senderName ?? '', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                child: Text(
+                  msg.senderRole != null 
+                    ? '${msg.senderName} (${msg.senderRole!.replaceAll('_', ' ').toLowerCase().split(' ').map((word) => word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}').join(' ')})'
+                    : msg.senderName ?? '', 
+                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)
+                ),
               ),
             if (msg.type == MessageType.image)
               msg.mediaUrl == null 

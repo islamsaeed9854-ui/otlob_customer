@@ -275,7 +275,7 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
               ),
               child: Text(
                 _serviceType == 'ride' ? (isAr ? 'اطلب الآن' : 'Request Now') : s.requestCourier,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
               ),
             ),
             const SizedBox(height: 40),
@@ -319,7 +319,7 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
               style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 13,
-                color: isSelected ? Colors.white : Colors.grey.shade500,
+                color: isSelected ? Colors.black : Colors.grey.shade500,
               ),
             ),
           ),
@@ -374,11 +374,11 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
                           width: 72,
                           height: 72,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.white : Colors.grey),
-                          errorWidget: (context, url, error) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.white : Colors.grey),
+                          placeholder: (context, url) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.black : Colors.grey),
+                          errorWidget: (context, url, error) => Icon(fallbackIcon, size: 44, color: isSelected ? Colors.black : Colors.grey),
                         ),
                       )
-                    : Icon(fallbackIcon, size: 52, color: isSelected ? Colors.white : Colors.grey),
+                    : Icon(fallbackIcon, size: 52, color: isSelected ? Colors.black : Colors.grey),
               ),
             ),
             const SizedBox(height: 12),
@@ -519,7 +519,7 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
               elevation: 8,
               shadowColor: AppColors.primary.withOpacity(0.4),
             ),
-            child: Text(s.trackRequest, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+            child: Text(s.trackRequest, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 18)),
           ),
           const SizedBox(height: 12),
           TextButton(

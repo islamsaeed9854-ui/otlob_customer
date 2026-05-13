@@ -19,9 +19,11 @@ class Orders extends _$Orders {
     final newOrder = {
       'id': 'ORD-${DateTime.now().millisecondsSinceEpoch}',
       'items': items.map((i) => {
+        'productId': i.product['id'],
         'name': i.product['name'],
         'quantity': i.quantity,
-        'price': i.product['price'],
+        'unit': i.selectedUnit,
+        'price': i.totalPrice / i.quantity,
       }).toList(),
       'paymentMethod': paymentMethod,
       'address': address,

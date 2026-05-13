@@ -43,7 +43,9 @@ class Chat extends _$Chat {
       } else if (args.type == 'order') {
         response = await dio.post('/chat/conversations/order', data: {'orderId': args.id});
       } else if (args.type == 'support') {
-         response = await dio.post('/chat/conversations/support', data: {'vendorId': args.id});
+        response = await dio.post('/chat/conversations/support', data: {
+          'vendorId': args.id == '0' ? null : args.id,
+        });
       } else {
         // Assume args.id is already a conversationId if type is unknown or direct
         response = await dio.get('/chat/conversations/${args.id}');
@@ -89,6 +91,7 @@ class Chat extends _$Chat {
             isMe: data['senderId'] == _currentUserId,
             timestamp: DateTime.parse(data['createdAt']),
             senderName: data['senderName'] ?? 'Support', 
+            senderRole: data['senderRole'],
             mediaUrl: _getFullUrl(data['mediaUrl']),
             metadata: data['metadata'],
           );
@@ -147,6 +150,7 @@ class Chat extends _$Chat {
         isMe: m['sender']['id'] == _currentUserId, 
         timestamp: DateTime.parse(m['createdAt']),
         senderName: m['sender']['name'],
+        senderRole: m['sender']['role'],
         mediaUrl: _getFullUrl(m['mediaUrl']),
         metadata: m['metadata'],
       )).toList();

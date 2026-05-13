@@ -5,25 +5,37 @@ part 'cart_controller.g.dart';
 class CartItem {
   final Map<String, dynamic> product;
   final int quantity;
+  final String selectedUnit; // 'package' or 'strip'
 
   CartItem({
     required this.product,
     required this.quantity,
+    this.selectedUnit = 'package',
   });
 
   double get totalPrice {
-    final p = product['price'];
-    final price = p is num ? p : (num.tryParse(p?.toString() ?? '0') ?? 0.0);
-    return (price * quantity).toDouble();
+    final p = product['price'] ?? product['basePrice'];
+    double price = p is num ? p.toDouble() : (double.tryParse(p?.toString() ?? '0') ?? 0.0);
+    
+    if (selectedUnit == 'strip' && product['sellByStrip'] == true) {
+      final stripsCount = product['stripsPerPackage'] as int? ?? 1;
+      if (stripsCount > 0) {
+        price = price / stripsCount;
+      }
+    }
+    
+    return price * quantity;
   }
 
   CartItem copyWith({
     Map<String, dynamic>? product,
     int? quantity,
+    String? selectedUnit,
   }) {
     return CartItem(
       product: product ?? this.product,
       quantity: quantity ?? this.quantity,
+      selectedUnit: selectedUnit ?? this.selectedUnit,
     );
   }
 }
@@ -64,7 +76,7 @@ class Cart extends _$Cart {
     return const CartState(vendorBaskets: {});
   }
 
-  void addItem(Map<String, dynamic> product) {
+  void addItem(Map<String, dynamic> product, {String unit = 'package'}) {
     final vendorId = product['vendorId'] as String;
     
     final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
@@ -72,32 +84,33 @@ class Cart extends _$Cart {
         ? List<CartItem>.from(currentBaskets[vendorId]!) 
         : <CartItem>[];
     
-    final existingIndex = vendorItems.indexWhere((item) => item.product['id'] == product['id']);
+    final existingIndex = vendorItems.indexWhere((item) => 
+      item.product['id'] == product['id'] && item.selectedUnit == unit);
 
     if (existingIndex >= 0) {
       final existingItem = vendorItems[existingIndex];
       vendorItems[existingIndex] = existingItem.copyWith(quantity: existingItem.quantity + 1);
     } else {
-      vendorItems.add(CartItem(product: product, quantity: 1));
+      vendorItems.add(CartItem(product: product, quantity: 1, selectedUnit: unit));
     }
     
     currentBaskets[vendorId] = vendorItems;
     state = CartState(vendorBaskets: currentBaskets);
   }
 
-  void removeItem(String productId) {
+  void removeItem(String productId, {String? unit}) {
     final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
     String? targetVendorId;
     
     currentBaskets.forEach((vendorId, items) {
-      if (items.any((item) => item.product['id'] == productId)) {
+      if (items.any((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit))) {
         targetVendorId = vendorId;
       }
     });
 
     if (targetVendorId != null) {
       final vendorItems = List<CartItem>.from(currentBaskets[targetVendorId]!);
-      vendorItems.removeWhere((item) => item.product['id'] == productId);
+      vendorItems.removeWhere((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit));
       
       if (vendorItems.isEmpty) {
         currentBaskets.remove(targetVendorId);
@@ -109,9 +122,9 @@ class Cart extends _$Cart {
     }
   }
 
-  void updateQuantity(String productId, int newQuantity) {
+  void updateQuantity(String productId, int newQuantity, {String? unit}) {
     if (newQuantity <= 0) {
-      removeItem(productId);
+      removeItem(productId, unit: unit);
       return;
     }
 
@@ -119,14 +132,14 @@ class Cart extends _$Cart {
     String? targetVendorId;
     
     currentBaskets.forEach((vendorId, items) {
-      if (items.any((item) => item.product['id'] == productId)) {
+      if (items.any((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit))) {
         targetVendorId = vendorId;
       }
     });
 
     if (targetVendorId != null) {
       final vendorItems = List<CartItem>.from(currentBaskets[targetVendorId]!);
-      final idx = vendorItems.indexWhere((i) => i.product['id'] == productId);
+      final idx = vendorItems.indexWhere((i) => i.product['id'] == productId && (unit == null || i.selectedUnit == unit));
       
       if (idx >= 0) {
         vendorItems[idx] = vendorItems[idx].copyWith(quantity: newQuantity);
