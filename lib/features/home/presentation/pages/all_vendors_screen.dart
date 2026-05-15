@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
+import '../../../../core/widgets/floating_cart_overlay.dart';
 import '../providers/home_controller.dart';
 import '../providers/discovery_search_controller.dart';
 import '../widgets/vendor_card.dart';
@@ -37,108 +38,113 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : Colors.grey.shade50,
-      body: homeState.when(
-        data: (data) {
-          final allVendors = data.products;
-          final categoryVendors = widget.type == 'all'
-              ? allVendors
-              : allVendors.where((v) => v['type'] == widget.type).toList();
+      body: Stack(
+        children: [
+          homeState.when(
+            data: (data) {
+              final allVendors = data.products;
+              final categoryVendors = widget.type == 'all'
+                  ? allVendors
+                  : allVendors.where((v) => v['type'] == widget.type).toList();
 
-          // Resolve dynamic title from categories data
-          if (widget.type != 'all') {
-            final cat = data.categories.where((c) => c['type'] == widget.type).firstOrNull;
-            if (cat != null) {
-              title = (s.isArabic && cat['nameAr'] != null) ? cat['nameAr'] : cat['name'];
-            }
-          }
+              // Resolve dynamic title from categories data
+              if (widget.type != 'all') {
+                final cat = data.categories.where((c) => c['type'] == widget.type).firstOrNull;
+                if (cat != null) {
+                  title = (s.isArabic && cat['nameAr'] != null) ? cat['nameAr'] : cat['name'];
+                }
+              }
 
-          // Search results from Discovery Search
-          final discoverySearch = _searchQuery.isEmpty 
-              ? null 
-              : ref.watch(discoverySearchControllerProvider(
-                  (query: _searchQuery, 
-                   verticalId: widget.type == 'all' ? null : data.categories.where((c) => c['type'] == widget.type).firstOrNull?['id'])
-                ));
+              // Search results from Discovery Search
+              final discoverySearch = _searchQuery.isEmpty 
+                  ? null 
+                  : ref.watch(discoverySearchControllerProvider(
+                      (query: _searchQuery, 
+                       verticalId: widget.type == 'all' ? null : data.categories.where((c) => c['type'] == widget.type).firstOrNull?['id'])
+                    ));
 
-          final filtered = categoryVendors.where((v) {
-            final name = (v['name'] as String? ?? '').toLowerCase();
-            return name.contains(_searchQuery.toLowerCase());
-          }).toList();
+              final filtered = categoryVendors.where((v) {
+                final name = (v['name'] as String? ?? '').toLowerCase();
+                return name.contains(_searchQuery.toLowerCase());
+              }).toList();
 
-          final suggestions = List.from(categoryVendors)
-            ..sort((a, b) => (b['rating'] ?? 0).compareTo(a['rating'] ?? 0));
-          final topSuggestions = suggestions.take(5).toList();
+              final suggestions = List.from(categoryVendors)
+                ..sort((a, b) => (b['rating'] ?? 0).compareTo(a['rating'] ?? 0));
+              final topSuggestions = suggestions.take(5).toList();
 
-          return CustomScrollView(
-            slivers: [
-              _buildAppBar(title, isDark),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: _buildSearchBar(s, isDark),
-                ),
-              ),
-              if (_searchQuery.isEmpty && topSuggestions.isNotEmpty) ...[
-                SliverToBoxAdapter(
-                  child: _buildSuggestionsSection(s, topSuggestions, isDark),
-                ),
-              ],
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                sliver: SliverToBoxAdapter(
-                  child: Text(
-                    _searchQuery.isEmpty ? s.allResults : s.searchResults,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              if (_searchQuery.isNotEmpty) 
-                discoverySearch!.when(
-                  data: (results) {
-                    if (results.isEmpty) {
-                      return SliverFillRemaining(
-                        child: _buildEmptyState(s),
-                      );
-                    }
-                    return SliverPadding(
-                      padding: const EdgeInsets.only(bottom: 32),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildDiscoveryResultCard(s, results[index], isDark),
-                          childCount: results.length,
-                        ),
-                      ),
-                    );
-                  },
-                  loading: () => const SliverToBoxAdapter(
-                    child: Center(child: Padding(padding: EdgeInsets.all(64), child: CircularProgressIndicator())),
-                  ),
-                  error: (e, st) => SliverToBoxAdapter(
-                    child: Center(child: Text('${s.searchErrorPrefix}$e')),
-                  ),
-                )
-              else if (filtered.isEmpty)
-                SliverFillRemaining(
-                  child: _buildEmptyState(s),
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: VendorCard(vendor: filtered[index]),
-                      ),
-                      childCount: filtered.length,
+              return CustomScrollView(
+                slivers: [
+                  _buildAppBar(title, isDark),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: _buildSearchBar(s, isDark),
                     ),
                   ),
-                ),
-            ],
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, st) => Center(child: Text('${s.errorPrefix}$e')),
+                  if (_searchQuery.isEmpty && topSuggestions.isNotEmpty) ...[
+                    SliverToBoxAdapter(
+                      child: _buildSuggestionsSection(s, topSuggestions, isDark),
+                    ),
+                  ],
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Text(
+                        _searchQuery.isEmpty ? s.allResults : s.searchResults,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  if (_searchQuery.isNotEmpty) 
+                    discoverySearch!.when(
+                      data: (results) {
+                        if (results.isEmpty) {
+                          return SliverFillRemaining(
+                            child: _buildEmptyState(s),
+                          );
+                        }
+                        return SliverPadding(
+                          padding: const EdgeInsets.only(bottom: 32),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => _buildDiscoveryResultCard(s, results[index], isDark),
+                              childCount: results.length,
+                            ),
+                          ),
+                        );
+                      },
+                      loading: () => const SliverToBoxAdapter(
+                        child: Center(child: Padding(padding: EdgeInsets.all(64), child: CircularProgressIndicator())),
+                      ),
+                      error: (e, st) => SliverToBoxAdapter(
+                        child: Center(child: Text('${s.searchErrorPrefix}$e')),
+                      ),
+                    )
+                  else if (filtered.isEmpty)
+                    SliverFillRemaining(
+                      child: _buildEmptyState(s),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: VendorCard(vendor: filtered[index]),
+                          ),
+                          childCount: filtered.length,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, st) => Center(child: Text('${s.errorPrefix}$e')),
+          ),
+          const FloatingCartOverlay(),
+        ],
       ),
     );
   }

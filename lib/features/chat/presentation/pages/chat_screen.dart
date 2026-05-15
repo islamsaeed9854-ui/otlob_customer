@@ -18,6 +18,7 @@ import '../../../../core/l10n/app_strings.dart';
 import '../../domain/entities/message.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/order_offer_bottom_sheet.dart';
+import '../../../../core/widgets/floating_cart_overlay.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -138,6 +139,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  Future<void> _cancelRecording() async {
+    if (!_isRecording) return;
+    await _recorder!.stopRecorder();
+    _recordingSubscription?.cancel();
+    
+    if (_recordingPath != null) {
+      final file = File(_recordingPath!);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+
+    setState(() {
+      _isRecording = false;
+      _recordingDuration = Duration.zero;
+    });
+  }
+
   Future<void> _stopRecording() async {
     if (!_isRecording) return;
     await _recorder!.stopRecorder();
@@ -187,29 +206,34 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: messagesAsync.when(
-              data: (messages) => ListView.builder(
-                controller: _scrollController,
-                reverse: true, // Start from bottom
-                padding: const EdgeInsets.all(16),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final msg = messages[index];
-                  return GestureDetector(
-                    key: ValueKey(msg.id),
-                    onLongPress: msg.isMe ? () => _showOptions(msg) : null,
-                    child: _buildMessage(msg),
-                  );
-                },
+          Column(
+            children: [
+              Expanded(
+                child: messagesAsync.when(
+                  data: (messages) => ListView.builder(
+                    controller: _scrollController,
+                    reverse: true, // Start from bottom
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 80), // Extra padding for floating cart
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      return GestureDetector(
+                        key: ValueKey(msg.id),
+                        onLongPress: msg.isMe ? () => _showOptions(msg) : null,
+                        child: _buildMessage(msg),
+                      );
+                    },
+                  ),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (err, stack) => Center(child: Text('Error: $err')),
+                ),
               ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err')),
-            ),
+              _buildInput(),
+            ],
           ),
-          _buildInput(),
+          const FloatingCartOverlay(),
         ],
       ),
     );
@@ -583,8 +607,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Row(
           children: [
             GestureDetector(
-              onLongPress: _startRecording,
-              onLongPressUp: _stopRecording,
+              onTap: () {
+                if (_isRecording) {
+                  _stopRecording();
+                } else {
+                  _startRecording();
+                }
+              },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.all(10),
@@ -597,7 +626,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ),
                 ),
                 child: Icon(
-                  _isRecording ? LucideIcons.stopCircle : LucideIcons.mic,
+                  _isRecording ? LucideIcons.send : LucideIcons.mic,
                   color: _isRecording ? AppColors.error : AppColors.primary,
                   size: 22,
                 ),
@@ -635,18 +664,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                Flexible(
-                                  child: Text(
-                                    AppStrings.of(context).releaseToSend,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade500,
-                                      fontSize: 11,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                TextButton.icon(
+                                  onPressed: _cancelRecording,
+                                  icon: const Icon(LucideIcons.x, size: 14, color: AppColors.error),
+                                  label: Text(
+                                    AppStrings.of(context).cancel,
+                                    style: const TextStyle(color: AppColors.error, fontSize: 12),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                               ],
                             ),
                           )

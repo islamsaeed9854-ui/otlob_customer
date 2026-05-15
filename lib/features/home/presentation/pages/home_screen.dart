@@ -6,6 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/widgets/custom_chat_icon.dart';
+import '../../../../core/widgets/floating_cart_overlay.dart';
 
 import '../../../../core/utils/image_utils.dart';
 
@@ -76,31 +77,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: homeState.when(
-          data: (data) => RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: () async {
-              await ref.refresh(homeControllerProvider.future);
-              await ref.refresh(platformSettingsProvider.future);
-            },
-            child: _buildBody(context, data),
-          ),
-          loading: () => _buildShimmer(),
-          error: (error, _) => _buildError(error.toString()),
+        child: Stack(
+          children: [
+            homeState.when(
+              data: (data) => RefreshIndicator(
+                color: AppColors.primary,
+                onRefresh: () async {
+                  await ref.refresh(homeControllerProvider.future);
+                  await ref.refresh(platformSettingsProvider.future);
+                },
+                child: _buildBody(context, data),
+              ),
+              loading: () => _buildShimmer(),
+              error: (error, _) => _buildError(error.toString()),
+            ),
+            const FloatingCartOverlay(),
+          ],
         ),
       ),
       bottomNavigationBar: homeState.maybeWhen(
-        data: (data) => SizedBox(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildCartOverlay(context, cartState),
-              _buildBottomNav(context, data),
-            ],
-          ),
-        ),
+        data: (data) => _buildBottomNav(context, data),
         orElse: () => const SizedBox.shrink(),
       ),
     );
@@ -622,20 +618,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
         final coverImageWidget = Container(
           width: double.infinity,
-          height: 160,
+          height: 200,
           decoration: BoxDecoration(
             image: coverUrl != null && coverUrl.isNotEmpty
                 ? DecorationImage(
                     image: CachedNetworkImageProvider(ImageUtils.formatImageUrl(coverUrl)),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.2), BlendMode.darken),
+                    fit: BoxFit.fill,
                   )
-                : DecorationImage(
-                    image: const AssetImage('assets/home_cover.jpg'),
-                    fit: BoxFit.cover,
-                    colorFilter: ColorFilter.mode(
-                        Colors.black.withOpacity(0.2), BlendMode.darken),
+                : const DecorationImage(
+                    image: AssetImage('assets/home_cover.jpg'),
+                    fit: BoxFit.fill,
                   ),
           ),
         );
@@ -648,7 +640,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           alignment: Alignment.bottomCenter,
           children: [
             SizedBox(
-              height: 160,
+              height: 200,
               child: PageView.builder(
                 controller: _promoPageController,
                 onPageChanged: (int page) {
@@ -681,7 +673,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ? data.products.where((v) => v['id']?.toString() == vendorId).firstOrNull 
                       : null;
 
-                  return GestureDetector(
+                   return GestureDetector(
                     onTap: () async {
                       if (b['type'] == 'VENDOR' || b['type'] == 'PRODUCT') {
                         final vendorId = b['vendorId']?.toString();
@@ -705,15 +697,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: Container(
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            colors: [col, col.withOpacity(0.8)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight),
                         image: imageUrl.isNotEmpty ? DecorationImage(
                           image: NetworkImage(fullUrl),
-                          fit: BoxFit.cover,
-                          colorFilter: ColorFilter.mode(
-                              col.withOpacity(0.4), BlendMode.srcATop),
+                          fit: BoxFit.fill,
                         ) : null,
                       ),
                       child: Stack(

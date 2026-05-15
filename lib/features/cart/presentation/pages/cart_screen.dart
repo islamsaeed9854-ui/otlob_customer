@@ -16,54 +16,114 @@ class CartScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = AppStrings.of(context);
     final cartState = ref.watch(cartProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: isDark ? AppColors.backgroundDark : const Color(0xFFFBFBFB),
       appBar: AppBar(
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(s.cart, style: const TextStyle(fontWeight: FontWeight.bold)),
-          if (cartState.vendorBaskets.isNotEmpty)
-            Text('${cartState.totalItems} ${s.cartButton}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal)),
-        ]),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          s.cart, 
+          style: TextStyle(
+            fontWeight: FontWeight.w900, 
+            fontSize: 22,
+            color: isDark ? Colors.white : Colors.black,
+          )
+        ),
         actions: [
           if (cartState.vendorBaskets.isNotEmpty)
-            TextButton(
-              onPressed: () => ref.read(cartProvider.notifier).clearCart(),
-              child: Text(s.clearAll, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 8),
+              child: IconButton(
+                onPressed: () => _showClearConfirmation(context, ref, s),
+                icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent),
+                tooltip: s.clearAll,
+              ),
             ),
         ],
       ),
       body: cartState.vendorBaskets.isEmpty
-          ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.shopping_cart_outlined, size: 100, color: Colors.grey.shade200),
-              const SizedBox(height: 20),
-              Text(s.emptyCart, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(s.emptyCartSub, style: TextStyle(color: Colors.grey.shade500, fontSize: 14)),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => context.go('/home'),
-                icon: const Icon(Icons.explore),
-                label: Text(s.browseNow),
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
-              ),
-            ]))
+          ? _buildEmptyCart(context, s, isDark)
           : ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
               itemCount: cartState.vendorBaskets.length,
               itemBuilder: (context, index) {
                 final vendorId = cartState.vendorBaskets.keys.elementAt(index);
                 final vendorItems = cartState.vendorBaskets[vendorId] ?? [];
-                return _buildVendorBasket(context, ref, vendorId, vendorItems, s);
+                return _buildVendorBasket(context, ref, vendorId, vendorItems, s, isDark);
               },
             ),
     );
   }
 
-  Widget _buildVendorBasket(BuildContext context, WidgetRef ref, String vendorId, List<CartItem> items, AppStrings s) {
+  Widget _buildEmptyCart(BuildContext context, AppStrings s, bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, 
+        children: [
+          Container(
+            padding: const EdgeInsets.all(40),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.05),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.shopping_basket_outlined, 
+              size: 120, 
+              color: isDark ? Colors.white12 : Colors.grey.shade200
+            ),
+          ),
+          const SizedBox(height: 32),
+          Text(
+            s.emptyCart, 
+            style: TextStyle(
+              fontSize: 24, 
+              fontWeight: FontWeight.w900,
+              color: isDark ? Colors.white : Colors.black
+            )
+          ),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 48),
+            child: Text(
+              s.emptyCartSub, 
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isDark ? Colors.white60 : Colors.grey.shade600, 
+                fontSize: 16,
+                height: 1.5
+              )
+            ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            onPressed: () => context.go('/home'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              minimumSize: const Size(200, 56),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              elevation: 0,
+            ),
+            child: Text(
+              s.browseNow, 
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)
+            ),
+          ),
+        ]
+      )
+    );
+  }
+
+  Widget _buildVendorBasket(BuildContext context, WidgetRef ref, String vendorId, List<CartItem> items, AppStrings s, bool isDark) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final vendorName = items.isNotEmpty ? (items.first.product['vendorName'] as String? ?? s.vendor) : s.vendor;
+    final firstProduct = items.first.product;
+    final vendorName = s.isArabic 
+        ? (firstProduct['vendorNameAr'] ?? firstProduct['vendorName'] ?? s.vendor) 
+        : (firstProduct['vendorName'] ?? s.vendor);
     final subtotal = ref.read(cartProvider).getVendorSubtotal(vendorId);
     final delivery = subtotal > 200 ? 0.0 : 15.0;
     final total = subtotal + delivery;
@@ -71,60 +131,100 @@ class CartScreen extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primary.withOpacity(0.1), width: 1.5),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.08), 
+            blurRadius: 24, 
+            offset: const Offset(0, 8)
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.05),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            ),
+          // Vendor Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
             child: Row(
               children: [
-                const Icon(Icons.storefront_rounded, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Expanded(child: Text(vendorName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16))),
-                Text('${items.length} ${s.cartButton}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    vendorName, 
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900, 
+                      fontSize: 18,
+                      color: isDark ? Colors.white : Colors.black87
+                    )
+                  )
+                ),
+                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: isDark ? Colors.white24 : Colors.black26),
               ],
             ),
           ),
+          
+          const Divider(indent: 20, endIndent: 20, height: 32),
+
+          // Items List
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
-              children: items.map((item) => _buildCartItem(context, ref, item, s)).toList(),
+              children: items.map((item) => _buildCartItem(context, ref, item, s, isDark)).toList(),
             ),
           ),
+
+          const SizedBox(height: 10),
+
+          // Basket Footer / Summary
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.1)))),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.02) : Colors.grey.withOpacity(0.03),
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+            ),
+            child: Column(
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(s.total, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                      Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primary)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ElevatedButton(
-                  onPressed: () => context.push('/checkout', extra: vendorId),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+                _buildSummaryRow(s.subtotal, '${subtotal.toStringAsFixed(0)} ${s.egp}', isDark),
+                const SizedBox(height: 8),
+                _buildSummaryRow(s.deliveryFee, '${delivery.toStringAsFixed(0)} ${s.egp}', isDark, isDelivery: true),
+                const Divider(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(s.total, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 13, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${total.toStringAsFixed(0)} ${s.egp}', 
+                          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppColors.primary)
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      onPressed: () => context.push('/checkout', extra: vendorId),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
+                        minimumSize: const Size(120, 54),
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: Text(s.checkout, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -134,41 +234,135 @@ class CartScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCartItem(BuildContext context, WidgetRef ref, CartItem item, AppStrings s) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Row(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: (item.product['image']?.toString().isEmpty ?? true)
-              ? Container(height: 60, width: 60, color: Colors.grey.shade200, child: const Icon(Icons.fastfood, color: Colors.grey))
-              : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl(item.product['image'] as String?), height: 60, width: 60, fit: BoxFit.cover),
+  Widget _buildSummaryRow(String label, String value, bool isDark, {bool isDelivery = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(
+          value, 
+          style: TextStyle(
+            color: isDelivery && value.startsWith('0') ? AppColors.success : (isDark ? Colors.white : Colors.black), 
+            fontSize: 14, 
+            fontWeight: FontWeight.w800
+          )
         ),
-        const SizedBox(width: 12),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(item.product['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13), maxLines: 2),
-          if (item.selectedUnit == 'strip')
-            Padding(
-              padding: const EdgeInsets.only(top: 2),
-              child: Text(s.strip, style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.bold)),
-            ),
-          const SizedBox(height: 4),
-          Text('${item.totalPrice.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14)),
-        ])),
-        Container(
-          decoration: BoxDecoration(border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.2)), borderRadius: BorderRadius.circular(8)),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            _qtyBtn(Icons.remove, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity - 1, unit: item.selectedUnit)),
-            Padding(padding: const EdgeInsets.symmetric(horizontal: 10), child: Text('${item.quantity}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold))),
-            _qtyBtn(Icons.add, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity + 1, unit: item.selectedUnit)),
-          ]),
-        ),
-      ]),
+      ],
     );
   }
 
-  Widget _qtyBtn(IconData icon, VoidCallback onTap) => InkWell(
-    onTap: onTap,
-    child: Container(padding: const EdgeInsets.all(6), child: Icon(icon, size: 16, color: AppColors.primary)),
+  Widget _buildCartItem(BuildContext context, WidgetRef ref, CartItem item, AppStrings s, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Product Image
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: (item.product['image']?.toString().isEmpty ?? true)
+                    ? Container(height: 80, width: 80, color: isDark ? Colors.white12 : Colors.grey.shade100, child: const Icon(Icons.fastfood, color: Colors.grey))
+                    : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl(item.product['image'] as String?), height: 80, width: 80, fit: BoxFit.cover),
+              ),
+              Positioned(
+                top: 0, right: 0,
+                child: GestureDetector(
+                  onTap: () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], 0, unit: item.selectedUnit),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, size: 12, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          
+          // Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start, 
+              children: [
+                Text(
+                  s.isArabic ? (item.product['nameAr'] ?? item.product['name'] ?? '') : (item.product['name'] ?? ''), 
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: isDark ? Colors.white : Colors.black), 
+                  maxLines: 2, 
+                  overflow: TextOverflow.ellipsis
+                ),
+                if (item.selectedUnit == 'strip')
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                    child: Text(s.strip, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w900)),
+                  ),
+                const SizedBox(height: 8),
+                Text(
+                  '${item.totalPrice.toStringAsFixed(0)} ${s.egp}', 
+                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 16)
+                ),
+              ]
+            )
+          ),
+          
+          const SizedBox(width: 12),
+
+          // Quantity Pill
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100, 
+              borderRadius: BorderRadius.circular(20)
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min, 
+              children: [
+                _qtyBtn(Icons.remove, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity - 1, unit: item.selectedUnit)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8), 
+                  child: Text('${item.quantity}', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87))
+                ),
+                _qtyBtn(Icons.add, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity + 1, unit: item.selectedUnit)),
+              ]
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _qtyBtn(IconData icon, bool isDark, VoidCallback onTap) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(8), 
+        child: Icon(icon, size: 18, color: AppColors.primary)
+      ),
+    ),
   );
+
+  void _showClearConfirmation(BuildContext context, WidgetRef ref, AppStrings s) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(s.clearAll, style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(s.emptyCartSub), // Reusing string for confirmation
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
+          TextButton(
+            onPressed: () {
+              ref.read(cartProvider.notifier).clearCart();
+              Navigator.pop(context);
+            }, 
+            child: Text(s.yes, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -12,6 +12,7 @@ import '../../../../core/providers/app_settings_provider.dart';
 import '../../../../core/services/token_service.dart';
 import '../../../auth/presentation/providers/auth_controller.dart';
 import '../providers/profile_controller.dart';
+import '../../../../core/widgets/floating_cart_overlay.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -24,98 +25,106 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(child: _buildHeader(context, ref, s, profileState)),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            sliver: SliverList(
-              delegate: SliverChildListDelegate([
-                _buildCard(context: context, children: [
-                  _buildToggleTile(
-                    icon: Icons.language_rounded,
-                    title: s.language,
-                    subtitle: s.languageName,
-                    value: settingsState.languageCode == 'ar',
-                    onChanged: (val) {
-                      final langCode = val ? 'ar' : 'en';
-                      context.setLocale(Locale(langCode));
-                      ref.read(appSettingsProvider.notifier).changeLanguage(langCode);
-                      ref.read(profileProvider.notifier).toggleLanguage();
-                    },
-                  ),
-                  _buildToggleTile(
-                    icon: Icons.notifications_active_rounded,
-                    title: s.notifications,
-                    subtitle: profileState.notificationsEnabled ? s.enabled : s.disabled,
-                    value: profileState.notificationsEnabled,
-                    onChanged: (_) => ref.read(profileProvider.notifier).toggleNotifications(),
-                  ),
-                  _buildToggleTile(
-                    icon: Icons.dark_mode_rounded,
-                    title: s.darkMode,
-                    subtitle: (Theme.of(context).brightness == Brightness.dark) ? s.on : s.off,
-                    value: Theme.of(context).brightness == Brightness.dark,
-                    onChanged: (val) => ref.read(appSettingsProvider.notifier).changeTheme(val ? ThemeMode.dark : ThemeMode.light),
-                  ),
-                ]),
-                const SizedBox(height: 12),
-                _buildCard(context: context, children: [
-                  _buildNavTile(
-                    icon: Icons.edit_rounded,
-                    title: s.editProfile,
-                    onTap: () => _showEditProfile(context, ref, s, profileState),
-                  ),
-                  _buildNavTile(
-                    icon: Icons.location_on_rounded,
-                    title: s.myAddresses,
-                    onTap: () => context.push('/addresses'),
-                  ),
-                  _buildNavTile(
-                    icon: Icons.help_outline_rounded,
-                    title: s.helpCenter,
-                    onTap: () => context.push('/chat/support/0'),
-                  ),
-                  _buildNavTile(
-                    icon: Icons.info_outline_rounded,
-                    title: s.aboutApp,
-                    onTap: () {},
-                  ),
-                ]),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final confirmed = await showDialog<bool>(
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(child: _buildHeader(context, ref, s, profileState)),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    _buildCard(context: context, children: [
+                      _buildToggleTile(
                         context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text(s.logout),
-                          content: Text(s.logoutConfirm),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
-                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.logout, style: const TextStyle(color: Colors.red))),
-                          ],
+                        icon: Icons.language_rounded,
+                        title: s.language,
+                        subtitle: s.languageName,
+                        value: settingsState.languageCode == 'ar',
+                        onChanged: (val) {
+                          final langCode = val ? 'ar' : 'en';
+                          context.setLocale(Locale(langCode));
+                          ref.read(appSettingsProvider.notifier).changeLanguage(langCode);
+                          ref.read(profileProvider.notifier).toggleLanguage();
+                        },
+                      ),
+                      _buildToggleTile(
+                        context: context,
+                        icon: Icons.notifications_active_rounded,
+                        title: s.notifications,
+                        subtitle: profileState.notificationsEnabled ? s.enabled : s.disabled,
+                        value: profileState.notificationsEnabled,
+                        onChanged: (_) => ref.read(profileProvider.notifier).toggleNotifications(),
+                      ),
+                      _buildToggleTile(
+                        context: context,
+                        icon: Icons.dark_mode_rounded,
+                        title: s.darkMode,
+                        subtitle: (Theme.of(context).brightness == Brightness.dark) ? s.on : s.off,
+                        value: Theme.of(context).brightness == Brightness.dark,
+                        onChanged: (val) => ref.read(appSettingsProvider.notifier).changeTheme(val ? ThemeMode.dark : ThemeMode.light),
+                      ),
+                    ]),
+                    const SizedBox(height: 12),
+                    _buildCard(context: context, children: [
+                      _buildNavTile(
+                        icon: Icons.edit_rounded,
+                        title: s.editProfile,
+                        onTap: () => _showEditProfile(context, ref, s, profileState),
+                      ),
+                      _buildNavTile(
+                        icon: Icons.location_on_rounded,
+                        title: s.myAddresses,
+                        onTap: () => context.push('/addresses'),
+                      ),
+                      _buildNavTile(
+                        icon: Icons.help_outline_rounded,
+                        title: s.helpCenter,
+                        onTap: () => context.push('/chat/support/0'),
+                      ),
+                      _buildNavTile(
+                        icon: Icons.info_outline_rounded,
+                        title: s.aboutApp,
+                        onTap: () {},
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(s.logout),
+                              content: Text(s.logoutConfirm),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(s.cancel)),
+                                TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(s.logout, style: const TextStyle(color: Colors.red))),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true) {
+                            ref.read(authControllerProvider.notifier).logout();
+                          }
+                        },
+                        icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                        label: Text(s.logout, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
-                      );
-                      if (confirmed == true) {
-                        ref.read(authControllerProvider.notifier).logout();
-                      }
-                    },
-                    icon: const Icon(Icons.logout_rounded, color: Colors.white),
-                    label: Text(s.logout, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.error,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 32),
+                  ]),
                 ),
-                const SizedBox(height: 32),
-              ]),
-            ),
+              ),
+            ],
           ),
+          const FloatingCartOverlay(),
         ],
       ),
     );
@@ -251,8 +260,8 @@ class ProfileScreen extends ConsumerWidget {
                   profileState.name,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 26,
                     letterSpacing: 0.5,
                   ),
                 ),
@@ -267,8 +276,8 @@ class ProfileScreen extends ConsumerWidget {
                     profileState.email,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -299,7 +308,7 @@ class ProfileScreen extends ConsumerWidget {
     ),
   );
 
-  Widget _buildToggleTile({required IconData icon, required String title, required String subtitle, required bool value, required ValueChanged<bool> onChanged}) {
+  Widget _buildToggleTile({required BuildContext context, required IconData icon, required String title, required String subtitle, required bool value, required ValueChanged<bool> onChanged}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       leading: Container(
@@ -312,11 +321,15 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w400),
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600, 
+          fontSize: 13, 
+          fontWeight: FontWeight.w500
+        ),
       ),
       trailing: Switch.adaptive(
         value: value,
@@ -339,7 +352,7 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
       ),
       trailing: Container(
         padding: const EdgeInsets.all(4),

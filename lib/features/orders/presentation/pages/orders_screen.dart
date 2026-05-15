@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
+import '../../../../core/widgets/floating_cart_overlay.dart';
 import '../providers/orders_provider.dart';
 
 class OrdersScreen extends ConsumerWidget {
@@ -18,22 +19,26 @@ class OrdersScreen extends ConsumerWidget {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(s.navOrders, style: const TextStyle(fontWeight: FontWeight.bold)),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
       ),
-      body: orders.isEmpty
-          ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
-              const SizedBox(height: 16),
-              Text(s.noResults, style: const TextStyle(fontSize: 18, color: Colors.grey)),
-            ]))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return _buildOrderCard(context, order, s);
-              },
-            ),
+      body: Stack(
+        children: [
+          orders.isEmpty
+              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
+                  const SizedBox(height: 16),
+                  Text(s.noResults, style: const TextStyle(fontSize: 18, color: Colors.grey)),
+                ]))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: orders.length,
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return _buildOrderCard(context, order, s);
+                  },
+                ),
+          const FloatingCartOverlay(),
+        ],
+      ),
     );
   }
 

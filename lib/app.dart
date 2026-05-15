@@ -20,7 +20,7 @@ class App extends ConsumerWidget {
     ref.watch(globalMessageListenerProvider);
 
     return MaterialApp.router(
-      title: 'Otlob',
+      title: 'OTLOB',
       debugShowCheckedModeBanner: false,
 
       localizationsDelegates: context.localizationDelegates,

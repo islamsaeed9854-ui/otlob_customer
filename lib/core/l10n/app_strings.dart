@@ -197,4 +197,6 @@ class AppStrings {
   String get package => isArabic ? 'عبوة' : 'Package';
   String get strip => isArabic ? 'شريط' : 'Strip';
   String get sellingUnit => isArabic ? 'وحدة البيع' : 'Selling Unit';
+  String get yes => isArabic ? 'نعم' : 'Yes';
+  String get confirm => isArabic ? 'تأكيد' : 'Confirm';
 }

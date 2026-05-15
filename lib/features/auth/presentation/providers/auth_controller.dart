@@ -1,5 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/services/token_service.dart';
+import '../../data/repositories/auth_repository_impl.dart';
 
 part 'auth_controller.g.dart';
 
@@ -14,15 +15,28 @@ class AuthController extends _$AuthController {
 
   Future<void> checkAuthStatus() async {
     final tokenService = ref.read(tokenServiceProvider);
-    final isValid = await tokenService.hasValidTokens();
+    final hasTokens = await tokenService.hasValidTokens();
 
-    if (isValid) {
-      final isVerified = await tokenService.isUserVerified();
-      state = isVerified ? AuthStatus.authenticated : AuthStatus.unverified;
-    } else {
+    if (!hasTokens) {
       await tokenService.clearTokens();
       state = AuthStatus.unauthenticated;
+      return;
     }
+
+    final isExpired = await tokenService.isAccessTokenExpired();
+    if (isExpired) {
+      try {
+        final authRepo = ref.read(authRepositoryProvider);
+        await authRepo.refreshToken();
+      } catch (_) {
+        await tokenService.clearTokens();
+        state = AuthStatus.unauthenticated;
+        return;
+      }
+    }
+
+    final isVerified = await tokenService.isUserVerified();
+    state = isVerified ? AuthStatus.authenticated : AuthStatus.unverified;
   }
 
   Future<void> login(String accessToken, String refreshToken) async {

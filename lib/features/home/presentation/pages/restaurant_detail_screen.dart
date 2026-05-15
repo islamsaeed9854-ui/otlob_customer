@@ -51,7 +51,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           if (item != null) {
             _initialProductShown = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _showProductBottomSheet(context, ref, item as Map<String, dynamic>, ref.read(cartProvider), s);
+              _showProductBottomSheet(context, ref, item as Map<String, dynamic>, ref.read(cartProvider), s, isDark);
             });
           }
         }
@@ -119,28 +119,40 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
                     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Expanded(child: Text(name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis)),
+                        Expanded(
+                          child: Text(
+                            name, 
+                            style: TextStyle(
+                              fontSize: 24, 
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                              color: isDark ? Colors.white : Colors.black,
+                            ), 
+                            overflow: TextOverflow.ellipsis
+                          )
+                        ),
                         Row(children: [
                           const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
                           const SizedBox(width: 4),
-                          Text('${fullVendor['rating']}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text('${fullVendor['rating']}', style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                         ]),
                       ]),
                       const SizedBox(height: 4),
                       Text(
                         description, 
                         style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.grey.shade700, 
-                          fontSize: 15,
+                          color: isDark ? Colors.white : Colors.black87.withOpacity(0.7), 
+                          fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          height: 1.3,
+                          height: 1.4,
+                          letterSpacing: 0.1,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Row(children: [
-                        _chip(Icons.access_time_rounded, fullVendor['deliveryTime']?.toString() ?? ''),
+                        _chip(Icons.access_time_rounded, fullVendor['deliveryTime']?.toString() ?? '', isDark),
                         const SizedBox(width: 12),
-                        _chip(Icons.delivery_dining, fullVendor['deliveryFee']?.toString() ?? ''),
+                        _chip(Icons.delivery_dining, fullVendor['deliveryFee']?.toString() ?? '', isDark),
                       ]),
                       const SizedBox(height: 16),
                       SizedBox(
@@ -198,13 +210,20 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                     children: [
                       Text(
                         isPharmacy ? s.products : s.menu, 
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black)
                       ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.grey.shade900 : Colors.grey.shade100,
+                          color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isDark ? Colors.black.withOpacity(0.1) : Colors.black.withOpacity(0.06), 
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
                         ),
                         child: TextField(
                           controller: _searchController,
@@ -255,7 +274,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s),
+                      (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s, isDark),
                       childCount: filteredMenu.length,
                     ),
                   ),
@@ -375,11 +394,11 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
               margin: const EdgeInsetsDirectional.only(end: 12),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : (isDark ? Colors.grey.shade900 : Colors.grey.shade100),
+                color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1A1A1A) : Colors.white),
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: isSelected ? [
-                  BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))
-                ] : null,
+                boxShadow: isSelected 
+                  ? [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))] 
+                  : [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.2 : 0.05), blurRadius: 8, offset: const Offset(0, 3))],
               ),
               child: Row(children: [
                 Container(
@@ -427,21 +446,27 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s) {
+  Widget _buildMenuItem(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s, bool isDark) {
     final cartItem = cartState.allItems.where((ci) => ci.product['id'] == item['id']).firstOrNull;
     final qty = cartItem?.quantity ?? 0;
 
     return GestureDetector(
       onTap: () {
         setState(() => _selectedUnit = 'package'); // Reset unit selection
-        _showProductBottomSheet(context, ref, item, cartState, s);
+        _showProductBottomSheet(context, ref, item, cartState, s, isDark);
       },
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.08), 
+              blurRadius: 15, 
+              offset: const Offset(0, 5)
+            )
+          ],
         ),
         child: Row(children: [
         ClipRRect(
@@ -463,9 +488,9 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                   : item['description'] as String? ?? '';
 
               return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1),
+                Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: isDark ? Colors.white : Colors.black), maxLines: 1),
                 const SizedBox(height: 4),
-                Text(description, style: TextStyle(color: Colors.grey.shade500, fontSize: 11), maxLines: 2),
+                Text(description, style: TextStyle(color: isDark ? Colors.white70 : Colors.grey.shade600, fontSize: 11), maxLines: 2),
               ]);
             }),
             const SizedBox(height: 10),
@@ -508,16 +533,16 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _chip(IconData icon, String label) {
+  Widget _chip(IconData icon, String label, bool isDark) {
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      Icon(icon, size: 13, color: Colors.grey.shade500),
+      Icon(icon, size: 13, color: isDark ? Colors.white.withOpacity(0.8) : Colors.grey.shade600),
       const SizedBox(width: 4),
-      Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+      Text(label, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 12)),
     ]);
   }
 
 
-  void _showProductBottomSheet(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s) {
+  void _showProductBottomSheet(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s, bool isDark) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -594,7 +619,12 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                                         Expanded(
                                           child: Text(
                                             name,
-                                            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                                            style: TextStyle(
+                                              fontSize: 24, 
+                                              fontWeight: FontWeight.w900, 
+                                              letterSpacing: -0.5,
+                                              color: isDark ? Colors.white : Colors.black,
+                                            ),
                                           ),
                                         ),
                                         Text(
@@ -641,7 +671,11 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                                     const SizedBox(height: 16),
                                     Text(
                                       description,
-                                      style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.6),
+                                      style: TextStyle(
+                                        fontSize: 15, 
+                                        color: isDark ? Colors.white70 : Colors.grey.shade700, 
+                                        height: 1.6
+                                      ),
                                     ),
                                   ],
                                 );

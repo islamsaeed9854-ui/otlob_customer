@@ -53,13 +53,13 @@ class VendorCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           )
         ],
       ),
@@ -141,14 +141,14 @@ class VendorCard extends ConsumerWidget {
                           );
                         }),
                         const SizedBox(width: 6),
-                        Text('${vendor['rating'] ?? '0.0'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text('${vendor['rating'] ?? '0.0'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
                       ]),
                     ]),
                     const SizedBox(height: 4),
                     Text(
                       description, 
                       style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.grey.shade700, 
+                        color: isDark ? Colors.white : Colors.grey.shade700, 
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                         height: 1.2,
