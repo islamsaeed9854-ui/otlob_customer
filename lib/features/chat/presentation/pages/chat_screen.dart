@@ -203,7 +203,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.title, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.pop()),
       ),
       body: Stack(
@@ -386,7 +386,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   msg.senderRole != null 
                     ? '${msg.senderName} (${msg.senderRole!.replaceAll('_', ' ').toLowerCase().split(' ').map((word) => word.isEmpty ? '' : '${word[0].toUpperCase()}${word.substring(1)}').join(' ')})'
                     : msg.senderName ?? '', 
-                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDark ? Colors.white70 : Colors.grey)
                 ),
               ),
             if (msg.type == MessageType.image)

@@ -68,21 +68,25 @@ class ProfileScreen extends ConsumerWidget {
                     const SizedBox(height: 12),
                     _buildCard(context: context, children: [
                       _buildNavTile(
+                        context: context,
                         icon: Icons.edit_rounded,
                         title: s.editProfile,
                         onTap: () => _showEditProfile(context, ref, s, profileState),
                       ),
                       _buildNavTile(
+                        context: context,
                         icon: Icons.location_on_rounded,
                         title: s.myAddresses,
                         onTap: () => context.push('/addresses'),
                       ),
                       _buildNavTile(
+                        context: context,
                         icon: Icons.help_outline_rounded,
                         title: s.helpCenter,
                         onTap: () => context.push('/chat/support/0'),
                       ),
                       _buildNavTile(
+                        context: context,
                         icon: Icons.info_outline_rounded,
                         title: s.aboutApp,
                         onTap: () {},
@@ -321,7 +325,11 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+        style: TextStyle(
+          fontWeight: FontWeight.w800, 
+          fontSize: 16,
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87
+        ),
       ),
       subtitle: Text(
         subtitle,
@@ -339,7 +347,7 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNavTile({required IconData icon, required String title, required VoidCallback onTap}) {
+  Widget _buildNavTile({required BuildContext context, required IconData icon, required String title, required VoidCallback onTap}) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       leading: Container(
@@ -352,7 +360,11 @@ class ProfileScreen extends ConsumerWidget {
       ),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+        style: TextStyle(
+          fontWeight: FontWeight.w700, 
+          fontSize: 16,
+          color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87
+        ),
       ),
       trailing: Container(
         padding: const EdgeInsets.all(4),
@@ -392,7 +404,11 @@ class ProfileScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                Text(s.editProfile, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
+                Text(s.editProfile, style: TextStyle(
+                  fontWeight: FontWeight.w800, 
+                  fontSize: 20,
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87
+                )),
                 const SizedBox(height: 24),
                 TextField(
                   controller: nameCtrl,

@@ -16,9 +16,9 @@ class AddressesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(s.myAddresses, style: const TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        title: Text(s.myAddresses, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87,
         elevation: 0,
       ),
       body: addresses.isEmpty
@@ -48,9 +48,9 @@ class AddressesScreen extends ConsumerWidget {
         children: [
           Icon(Icons.location_off_rounded, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
-          Text(AppStrings.of(context).noAddresses, style: TextStyle(fontSize: 18, color: Colors.grey.shade600, fontWeight: FontWeight.w600)),
+          Text(AppStrings.of(context).noAddresses, style: TextStyle(fontSize: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Text(AppStrings.of(context).addAddressSub, style: TextStyle(color: Colors.grey.shade500)),
+          Text(AppStrings.of(context).addAddressSub, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white60 : Colors.grey.shade500)),
         ],
       ),
     );
@@ -60,10 +60,10 @@ class AddressesScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 0.05), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
       child: Row(
@@ -81,9 +81,9 @@ class AddressesScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(address['label'] ?? AppStrings.of(context).address, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(address['label'] ?? AppStrings.of(context).address, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
                 const SizedBox(height: 4),
-                Text(address['address'] ?? '', style: TextStyle(color: Colors.grey.shade600, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                Text(address['address'] ?? '', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -118,7 +118,7 @@ class AddressesScreen extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
             const SizedBox(height: 24),
             TextField(controller: labelCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).addressLabel, prefixIcon: const Icon(Icons.label))),
             const SizedBox(height: 16),

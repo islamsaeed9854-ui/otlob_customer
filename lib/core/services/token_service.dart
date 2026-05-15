@@ -24,6 +24,10 @@ class TokenService {
   static const _userNameKey = 'user_name';
   static const _userPhoneKey = 'user_phone';
   static const _userAvatarKey = 'user_avatar';
+  static const _savedEmailKey = 'saved_email';
+  static const _savedPasswordKey = 'saved_password';
+  static const _savedNameKey = 'saved_name';
+  static const _savedRoleKey = 'saved_role';
 
   Future<String?> getAccessToken() async {
     return await _storage.read(key: _accessTokenKey);
@@ -83,6 +87,42 @@ class TokenService {
     await _storage.write(key: _refreshTokenKey, value: token);
   }
 
+  Future<void> saveSavedProfile({
+    required String email,
+    required String password,
+    required String name,
+    required String role,
+  }) async {
+    await _storage.write(key: _savedEmailKey, value: email);
+    await _storage.write(key: _savedPasswordKey, value: password);
+    await _storage.write(key: _savedNameKey, value: name);
+    await _storage.write(key: _savedRoleKey, value: role);
+  }
+
+  Future<Map<String, String>?> getSavedProfile() async {
+    final email = await _storage.read(key: _savedEmailKey);
+    final password = await _storage.read(key: _savedPasswordKey);
+    final name = await _storage.read(key: _savedNameKey);
+    final role = await _storage.read(key: _savedRoleKey);
+
+    if (email != null) {
+      return {
+        'email': email,
+        'password': password ?? '',
+        'name': name ?? '',
+        'role': role ?? '',
+      };
+    }
+    return null;
+  }
+
+  Future<void> deleteSavedProfile() async {
+    await _storage.delete(key: _savedEmailKey);
+    await _storage.delete(key: _savedPasswordKey);
+    await _storage.delete(key: _savedNameKey);
+    await _storage.delete(key: _savedRoleKey);
+  }
+
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -106,14 +146,23 @@ class TokenService {
   }
 
   Future<void> clearTokens() async {
-    await Future.wait([
-      deleteAccessToken(),
-      deleteRefreshToken(),
-      deleteUserEmail(),
-      _storage.delete(key: _userNameKey),
-      _storage.delete(key: _userPhoneKey),
-      _storage.delete(key: _userAvatarKey),
-    ]);
+    // Save these before deleting all
+    final savedEmail = await _storage.read(key: _savedEmailKey);
+    final savedPassword = await _storage.read(key: _savedPasswordKey);
+    final savedName = await _storage.read(key: _savedNameKey);
+    final savedRole = await _storage.read(key: _savedRoleKey);
+
+    await _storage.deleteAll();
+
+    // Restore saved profile if it existed
+    if (savedEmail != null) {
+      await saveSavedProfile(
+        email: savedEmail,
+        password: savedPassword ?? '',
+        name: savedName ?? '',
+        role: savedRole ?? '',
+      );
+    }
   }
 
   Future<bool> isAccessTokenExpired() async {

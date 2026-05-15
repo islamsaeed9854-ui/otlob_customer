@@ -203,4 +203,27 @@ class AuthRepositoryImpl implements AuthRepository {
       return Err(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<void> saveProfileInfo(String email, String password, String name, String role) async {
+    final tokenService = ref.read(tokenServiceProvider);
+    await tokenService.saveSavedProfile(
+      email: email,
+      password: password,
+      name: name,
+      role: role,
+    );
+  }
+
+  @override
+  Future<Map<String, String>?> getSavedProfile() async {
+    final tokenService = ref.read(tokenServiceProvider);
+    return await tokenService.getSavedProfile();
+  }
+
+  @override
+  Future<void> deleteSavedProfile() async {
+    final tokenService = ref.read(tokenServiceProvider);
+    await tokenService.deleteSavedProfile();
+  }
 }

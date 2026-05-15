@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import '../../domain/entities/message.dart';
 import '../../../../core/network/network_providers.dart';
 import '../../../../core/services/token_service.dart';
@@ -28,6 +29,7 @@ class ChatArgs {
 class Chat extends _$Chat {
   String? _conversationId;
   String? _currentUserId;
+  final List<Message> _earlyMessages = [];
 
   @override
   Future<List<Message>> build(ChatArgs args) async {
@@ -58,60 +60,76 @@ class Chat extends _$Chat {
       final socket = ref.read(socketServiceProvider);
       final accessToken = await ref.read(tokenServiceProvider).getAccessToken();
       if (accessToken != null) {
-        var isExpired = await ref.read(tokenServiceProvider).isAccessTokenExpired();
         var currentToken = accessToken;
+        final remaining = JwtDecoder.getRemainingTime(accessToken);
         
-        if (isExpired) {
-          print('🔄 ChatProvider: Token expired, attempting refresh...');
+        if (remaining.inMinutes < 5) {
+          print('🔄 ChatProvider: Token expiring soon, attempting refresh...');
           try {
             currentToken = await ref.read(authRepositoryProvider).refreshToken();
             print('✅ ChatProvider: Token refreshed successfully');
-            isExpired = false;
           } catch (e) {
             print('❌ ChatProvider: Token refresh failed: $e');
           }
         }
 
         print('🔌 ChatProvider: Initializing socket for conversation $_conversationId');
-        print('⏳ ChatProvider: Token is expired: $isExpired');
-        socket.initSocket(currentToken);
+        await socket.initSocket(currentToken);
       } else {
         print('⚠️ ChatProvider: No access token found for socket');
       }
 
-      socket.off('chat.message'); // Prevent duplicate listeners
-      socket.on('chat.message', (data) {
-        print('📥 Customer Socket Message Received: $data');
-        if (data['conversationId'] == _conversationId) {
-          print('✅ Adding real-time message to customer list');
-          final newMessage = Message(
-            id: data['messageId'],
-            content: data['text'] ?? '',
-            type: _mapMessageType(data['type']),
-            isMe: data['senderId'] == _currentUserId,
-            timestamp: DateTime.parse(data['createdAt']),
-            senderName: data['senderName'] ?? 'Support', 
-            senderRole: data['senderRole'],
-            mediaUrl: _getFullUrl(data['mediaUrl']),
-            metadata: data['metadata'],
-          );
-          
-          ref.read(chatProvider(args).notifier)._addRealtimeMessage(newMessage);
-        }
-      });
-
+      socket.on('chat.message', _onSocketMessage);
+      
       ref.onDispose(() {
-        socket.off('chat.message');
+        socket.off('chat.message', _onSocketMessage);
       });
 
       // 4. Fetch Messages
-      return _fetchMessages();
+      final fetchedMessages = await _fetchMessages();
+      
+      // Merge with early messages that might have arrived during fetch
+      final combined = [..._earlyMessages, ...fetchedMessages];
+      _earlyMessages.clear();
+      
+      // Sort and unique
+      final unique = <String, Message>{};
+      for (var m in combined) {
+        unique[m.id] = m;
+      }
+      final result = unique.values.toList();
+      result.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      
+      return result;
     } catch (e) {
       return [];
     }
   }
 
+  void _onSocketMessage(dynamic data) {
+    print('📥 Customer Socket Message Received: $data');
+    if (data['conversationId'] == _conversationId) {
+      final newMessage = Message(
+        id: data['messageId'],
+        content: data['text'] ?? '',
+        type: _mapMessageType(data['type']),
+        isMe: data['senderId']?.toString() == _currentUserId?.toString(),
+        timestamp: DateTime.parse(data['createdAt']),
+        senderName: data['senderName'] ?? 'Support', 
+        senderRole: data['senderRole'],
+        mediaUrl: _getFullUrl(data['mediaUrl']),
+        metadata: data['metadata'],
+      );
+      
+      _addRealtimeMessage(newMessage);
+    }
+  }
+
   void _addRealtimeMessage(Message message) {
+    if (state.isLoading) {
+      _earlyMessages.add(message);
+      return;
+    }
     state.whenData((messages) {
       // Check if we already have this message by ID
       if (messages.any((m) => m.id == message.id)) return;

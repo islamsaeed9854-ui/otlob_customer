@@ -91,7 +91,10 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
                     sliver: SliverToBoxAdapter(
                       child: Text(
                         _searchQuery.isEmpty ? s.allResults : s.searchResults,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87),
                       ),
                     ),
                   ),
@@ -117,7 +120,7 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
                         child: Center(child: Padding(padding: EdgeInsets.all(64), child: CircularProgressIndicator())),
                       ),
                       error: (e, st) => SliverToBoxAdapter(
-                        child: Center(child: Text('${s.searchErrorPrefix}$e')),
+                        child: Center(child: Text('${s.searchErrorPrefix}$e', style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
                       ),
                     )
                   else if (filtered.isEmpty)
@@ -141,7 +144,7 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, st) => Center(child: Text('${s.errorPrefix}$e')),
+            error: (e, st) => Center(child: Text('${s.errorPrefix}$e', style: TextStyle(color: isDark ? Colors.white : Colors.black87))),
           ),
           const FloatingCartOverlay(),
         ],
@@ -209,7 +212,13 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
                                 ),
                               ),
                             Expanded(
-                              child: Text(v['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              child: Text(v['name'] ?? '',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: isDark ? Colors.white : Colors.black87),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis),
                             ),
                           ],
                         ),
@@ -220,7 +229,11 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
                             const SizedBox(width: 4),
                             const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
                             const SizedBox(width: 2),
-                            Text('${v['rating'] ?? '4.5'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                            Text('${v['rating'] ?? '4.5'}',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: isDark ? Colors.white : Colors.black87)),
                           ],
                         ),
                       ],
@@ -299,7 +312,13 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(p['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(p['name'] ?? '',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: isDark ? Colors.white : Colors.black87),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Text('${s.egp} ${p['price']}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 14)),
                 ],
@@ -362,7 +381,10 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
             children: [
               Text(
                 s.featuredSuggestions,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : Colors.black87),
               ),
               const Icon(Icons.auto_awesome, color: Colors.amber, size: 18),
             ],
@@ -447,7 +469,10 @@ class _AllVendorsScreenState extends ConsumerState<AllVendorsScreen> {
                 children: [
                   Text(
                     v['name'] ?? 'Store',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: isDark ? Colors.white : Colors.black87),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

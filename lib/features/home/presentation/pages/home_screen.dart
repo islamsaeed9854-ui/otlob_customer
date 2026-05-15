@@ -9,16 +9,13 @@ import '../../../../core/widgets/custom_chat_icon.dart';
 import '../../../../core/widgets/floating_cart_overlay.dart';
 
 import '../../../../core/utils/image_utils.dart';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/providers/platform_settings_provider.dart';
-import '../../../../core/utils/image_utils.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../providers/home_controller.dart';
 import '../providers/home_state.dart';
 import '../widgets/vendor_card.dart';
-import '../widgets/vendor_card.dart';
+import '../widgets/offers_auto_scroller.dart';
 import 'package:otlob_customer/features/cart/presentation/providers/cart_controller.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -91,7 +88,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               loading: () => _buildShimmer(),
               error: (error, _) => _buildError(error.toString()),
             ),
-            const FloatingCartOverlay(),
+            FloatingCartOverlay(),
           ],
         ),
       ),
@@ -150,8 +147,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             );
           }),
         ),
-        const SliverToBoxAdapter(child: SizedBox(height: 16)),
+        const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(child: _buildCustomCourierBanner()),
+        SliverToBoxAdapter(child: _buildOffersStrip(data)),
         SliverToBoxAdapter(child: _buildSectionTitle(data)),
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -167,7 +165,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
       child: Directionality(
         textDirection: TextDirection.ltr,
         child: Row(
@@ -292,7 +290,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final s = AppStrings.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Container(
         height: 48,
         decoration: BoxDecoration(
@@ -325,7 +323,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 12),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -339,8 +337,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 : cat['name'];
 
             return Container(
-              width: 96,
-              height: 116,
+              width: 90,
+              height: 110,
               margin: const EdgeInsetsDirectional.only(end: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
@@ -425,8 +423,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         height: 72,
         child: Center(
           child: SizedBox(
-            width: 56,
-            height: 56,
+            width: 52,
+            height: 52,
             child: Stack(
               children: List.generate(realCategories.length, (index) {
                 final c = realCategories[index];
@@ -463,8 +461,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (cat['iconUrl'] != null && cat['iconUrl'].toString().isNotEmpty) {
       final fullUrl = ImageUtils.formatImageUrl(cat['iconUrl'] as String?);
       return SizedBox(
-        width: 72,
-        height: 72,
+        width: 60,
+        height: 60,
         child: CachedNetworkImage(
           imageUrl: fullUrl,
           fit: BoxFit.cover,
@@ -501,10 +499,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildFallbackIcon(String type, Color color) {
     return SizedBox(
-      width: 72,
-      height: 72,
+      width: 60,
+      height: 60,
       child: Center(
-        child: Icon(_getFallbackIconData(type), color: color, size: 56),
+        child: Icon(_getFallbackIconData(type), color: color, size: 44),
       ),
     );
   }
@@ -520,7 +518,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           final String fullUrl = ImageUtils.formatImageUrl(iconUrl);
 
           return Container(
-            height: 235,
+            height: 215,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: LinearGradient(
@@ -654,14 +652,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   }
 
                   final b = banners[actualIndex - 1];
-                  final palette = [
-                    AppColors.primary,
-                    const Color(0xFF7B1FA2),
-                    const Color(0xFF1565C0),
-                    const Color(0xFF2E7D32),
-                  ];
-                  final col = palette[(actualIndex - 1) % palette.length];
-                  
+                  // Banner properties extraction
                   final title = (s.isArabic && b['titleAr'] != null) ? b['titleAr'] : b['title'];
                   final description = (s.isArabic && b['descriptionAr'] != null) ? b['descriptionAr'] : (b['description'] ?? '');
                   
@@ -802,6 +793,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Widget _buildSectionTitle(HomeData data) {
     final s = AppStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     String label = s.allStores;
     
@@ -822,7 +814,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(label,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87)),
         GestureDetector(
           onTap: () => context.push('/all-vendors', extra: _selectedType),
           child: Text(s.seeAll,
@@ -835,8 +830,44 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  Widget _buildOffersStrip(HomeData data) {
+    final s = AppStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (data.offers.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                s.hotDeals,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: isDark ? Colors.white : Colors.black87,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 240,
+          child: OffersAutoScroller(offers: data.offers, isDark: isDark, s: s, allVendors: data.products),
+        ),
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
   Widget _buildVendorGrid(
       BuildContext context, List<Map<String, dynamic>> vendors) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (vendors.isEmpty) {
       return SliverToBoxAdapter(
           child: Center(
@@ -845,8 +876,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
         const SizedBox(height: 12),
         Text(AppStrings.of(context).noResults,
-            style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87)),
       ])));
     }
     return SliverList(
@@ -863,11 +896,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildError(String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       const Icon(Icons.wifi_off_rounded, size: 64, color: Colors.grey),
       const SizedBox(height: 16),
-      Text(message, textAlign: TextAlign.center),
+      Text(message,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
       const SizedBox(height: 16),
       ElevatedButton(
           onPressed: () => ref.refresh(homeControllerProvider),

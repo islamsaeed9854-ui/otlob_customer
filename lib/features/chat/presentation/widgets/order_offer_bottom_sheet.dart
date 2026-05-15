@@ -67,11 +67,14 @@ class OrderOfferBottomSheet extends ConsumerWidget {
                             color: Colors.grey.shade100,
                             child: Icon(Icons.fastfood_rounded, size: 80, color: Colors.grey.shade300),
                           )
-                        : CachedNetworkImage(
-                            imageUrl: ImageUtils.formatImageUrl(image as String?),
+                        : Container(
                             width: double.infinity,
                             height: 250,
-                            fit: BoxFit.cover,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50,
+                            child: CachedNetworkImage(
+                              imageUrl: ImageUtils.formatImageUrl(image as String?),
+                              fit: BoxFit.contain,
+                            ),
                           ),
                   ),
                   const SizedBox(height: 24),
@@ -81,7 +84,12 @@ class OrderOfferBottomSheet extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           name,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                          style: TextStyle(
+                            fontSize: 24, 
+                            fontWeight: FontWeight.w900, 
+                            letterSpacing: -0.5,
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87
+                          ),
                         ),
                       ),
                       Text(
@@ -93,7 +101,11 @@ class OrderOfferBottomSheet extends ConsumerWidget {
                   const SizedBox(height: 16),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 15, color: Colors.grey.shade600, height: 1.6),
+                    style: TextStyle(
+                      fontSize: 15, 
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey.shade600, 
+                      height: 1.6
+                    ),
                   ),
                   const SizedBox(height: 32),
                 ],
@@ -137,7 +149,7 @@ class OrderOfferBottomSheet extends ConsumerWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Colors.black,
                       minimumSize: const Size(double.infinity, 60),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       elevation: 0,

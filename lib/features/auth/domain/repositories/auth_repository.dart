@@ -30,4 +30,8 @@ abstract class AuthRepository {
     required String otp,
     required String newPassword,
   });
+
+  Future<void> saveProfileInfo(String email, String password, String name, String role);
+  Future<Map<String, String>?> getSavedProfile();
+  Future<void> deleteSavedProfile();
 }

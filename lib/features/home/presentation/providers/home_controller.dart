@@ -19,11 +19,13 @@ class HomeController extends _$HomeController {
         dio.get('/vendor-verticals'),
         dio.get('/vendors'),
         dio.get('/promotions'),
+        dio.get('/offers'),
       ]);
 
       final resp0 = results[0].data;
       final resp1 = results[1].data;
       final resp2 = results[2].data;
+      final resp3 = results[3].data;
 
       List<dynamic> verticalsData = [];
       if (resp0 is Map<String, dynamic>) {
@@ -69,6 +71,7 @@ class HomeController extends _$HomeController {
       }
       
       final promotions = promotionsData.map((p) => {
+        'id': p['id'],
         'title': p['title'],
         'titleAr': p['titleAr'],
         'description': p['description'],
@@ -80,10 +83,37 @@ class HomeController extends _$HomeController {
         'externalUrl': p['externalUrl'],
       }).toList();
 
+      // Map offers
+      List<dynamic> offersData = [];
+      if (resp3 is Map<String, dynamic>) {
+        offersData = (resp3['data'] ?? resp3['offers']) as List<dynamic>? ?? [];
+      } else if (resp3 is List) {
+        offersData = resp3;
+      }
+
+      final offers = offersData.map((o) => {
+        'id': o['id'],
+        'originalPrice': o['originalPrice'],
+        'offerPrice': o['offerPrice'],
+        'vendorId': o['vendorId'],
+        'productId': o['productId'],
+        'isActive': o['isActive'],
+        'sortOrder': o['sortOrder'],
+        // Enriched from relations
+        'productImageUrl': o['product']?['imageUrl'],
+        'productName': o['product']?['name'],
+        'productNameAr': o['product']?['nameAr'],
+        'productBasePrice': o['product']?['basePrice'],
+        'productComparePrice': o['product']?['comparePrice'],
+        'vendorStoreName': o['vendor']?['storeName'],
+        'vendorStoreNameAr': o['vendor']?['storeNameAr'],
+      }).toList();
+
       return HomeData(
         categories: categories,
         products: vendors,
         promotions: promotions,
+        offers: offers,
         activeOrder: null,
       );
     } catch (e, stack) {

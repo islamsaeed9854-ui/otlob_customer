@@ -18,7 +18,7 @@ class OrdersScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text(s.navOrders, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(s.navOrders, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
       ),
       body: Stack(
         children: [
@@ -26,7 +26,7 @@ class OrdersScreen extends ConsumerWidget {
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
                   const SizedBox(height: 16),
-                  Text(s.noResults, style: const TextStyle(fontSize: 18, color: Colors.grey)),
+                  Text(s.noResults, style: TextStyle(fontSize: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
                 ]))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
@@ -73,7 +73,8 @@ class OrdersScreen extends ConsumerWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(isCustom ? s.customDeliveryTitle : '${s.orderNo}${order['id'].toString().split('-').last}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(isCustom ? s.customDeliveryTitle : '${s.orderNo}${order['id'].toString().split('-').last}', 
+            style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
@@ -82,17 +83,17 @@ class OrdersScreen extends ConsumerWidget {
         ]),
         const Divider(height: 24),
         if (isCustom) ...[
-          Text('${s.pickupLocation}: ${order['pickup']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          Text('${s.pickupLocation}: ${order['pickup']}', style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
           const SizedBox(height: 4),
-          Text('${s.dropoffLocation}: ${order['dropoff']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+          Text('${s.dropoffLocation}: ${order['dropoff']}', style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
         ] else
           ...items.map((i) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 2),
-            child: Text('${i['quantity']}x ${i['name']}', style: const TextStyle(fontSize: 13, color: Colors.grey)),
+            child: Text('${i['quantity']}x ${i['name']}', style: TextStyle(fontSize: 13, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
           )),
         const Divider(height: 24),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text(s.total, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(s.total, style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
           Text('${total.toStringAsFixed(0)} ${s.egp}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
         ]),
       ]),

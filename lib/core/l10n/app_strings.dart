@@ -150,7 +150,7 @@ class AppStrings {
   String get catCosmetics => isArabic ? 'مستحضرات تجميل' : 'Cosmetics';
   String get addToCart => isArabic ? 'إضافة للسلة' : 'Add to Cart';
   String get done => isArabic ? 'تم' : 'Done';
-  String get allStores => isArabic ? 'جميع المتاجر' : 'All Stores';
+  String get allStores => isArabic ? 'مقترح لك' : 'Suggested for You';
   String get stores => isArabic ? 'المتاجر' : 'Stores';
   String get allResults => isArabic ? 'جميع النتائج' : 'All Results';
   String get searchResults => isArabic ? 'نتائج البحث' : 'Search Results';
@@ -160,7 +160,7 @@ class AppStrings {
   String get searchErrorPrefix => isArabic ? 'خطأ في البحث: ' : 'Search error: ';
   String get typeAMessage => isArabic ? 'اكتب رسالة...' : 'Type a message...';
   String get onlyImagesAllowed => isArabic ? 'يسمح بالصور فقط.' : 'Only images are allowed.';
-  String get orderShort => isArabic ? 'اطلب' : 'Order';
+  String get orderShort => isArabic ? 'اطلب الآن' : 'Order Now';
   String get proLabel => isArabic ? 'برو' : 'PRO';
   String get nearbyStores => isArabic ? 'المتاجر القريبة' : 'Nearby Stores';
   String get nearbyPrefix => isArabic ? 'متاجر ' : 'Nearby ';
@@ -199,4 +199,12 @@ class AppStrings {
   String get sellingUnit => isArabic ? 'وحدة البيع' : 'Selling Unit';
   String get yes => isArabic ? 'نعم' : 'Yes';
   String get confirm => isArabic ? 'تأكيد' : 'Confirm';
+
+  // Offers strip
+  String get hotDeals => isArabic ? '🔥 عروض حصرية' : '🔥 Hot Deals';
+  String get offerBadge => isArabic ? 'عرض' : 'OFFER';
+  String get seeAllOffers => isArabic ? 'عرض الكل' : 'See All';
+
+  String get rememberMe => isArabic ? 'تذكرني' : 'Remember Me';
+  String get orLoginWithAnother => isArabic ? 'أو تسجيل الدخول بحساب آخر' : 'Or login with another account';
 }

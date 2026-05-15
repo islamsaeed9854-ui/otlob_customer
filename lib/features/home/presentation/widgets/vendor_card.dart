@@ -124,27 +124,23 @@ class VendorCard extends ConsumerWidget {
                         fontSize: 18,
                         letterSpacing: -0.5,
                       ), maxLines: 1, overflow: TextOverflow.ellipsis)),
-                      Row(children: [
-                        Builder(builder: (context) {
-                          double rating = double.tryParse(vendor['rating']?.toString() ?? '0') ?? 0.0;
-                          return Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(5, (index) {
-                              if (index < rating.floor()) {
-                                return const Icon(Icons.star_rounded, color: Colors.amber, size: 14);
-                              } else if (index < rating) {
-                                return const Icon(Icons.star_half_rounded, color: Colors.amber, size: 14);
-                              } else {
-                                return Icon(Icons.star_rounded, color: Colors.grey.shade300, size: 14);
-                              }
-                            }),
-                          );
-                        }),
-                        const SizedBox(width: 6),
-                        Text('${vendor['rating'] ?? '0.0'}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: isDark ? Colors.white : Colors.black87)),
-                      ]),
+                      Builder(builder: (context) {
+                        double rating = double.tryParse(vendor['rating']?.toString() ?? '0') ?? 0.0;
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(5, (index) {
+                            if (index < rating.floor()) {
+                              return const Icon(Icons.star_rounded, color: Colors.amber, size: 18);
+                            } else if (index < rating) {
+                              return const Icon(Icons.star_half_rounded, color: Colors.amber, size: 18);
+                            } else {
+                              return Icon(Icons.star_rounded, color: Colors.grey.shade300, size: 18);
+                            }
+                          }),
+                        );
+                      }),
                     ]),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       description, 
                       style: TextStyle(
@@ -156,51 +152,33 @@ class VendorCard extends ConsumerWidget {
                       maxLines: 2, 
                       overflow: TextOverflow.ellipsis
                     ),
-                    const SizedBox(height: 10),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _chip(
-                              Icons.access_time_rounded,
-                              vendor['deliveryTime']?.toString() ?? '',
-                              textColor: isDark ? Colors.white70 : Colors.black87,
-                            ),
-                            const SizedBox(height: 6),
-                            _chip(
-                              Icons.delivery_dining_rounded,
-                              vendor['deliveryFee']?.toString() ?? '',
-                              textColor: AppColors.primary,
-                            ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            )
                           ],
                         ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
-                          ),
-                          child: Text(
-                            strings.orderShort,
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 12,
-                              letterSpacing: 0.5,
-                            ),
+                        child: Text(
+                          strings.orderShort,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                            letterSpacing: 0.3,
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
                 );
