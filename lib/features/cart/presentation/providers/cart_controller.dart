@@ -1,21 +1,35 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../data/datasources/cart_remote_data_source.dart';
 
 part 'cart_controller.g.dart';
 
 class CartItem {
+  final String? backendId;
   final Map<String, dynamic> product;
   final int quantity;
   final String selectedUnit; // 'package' or 'strip'
+  final Map<String, dynamic>? selectedVariant;
+  final List<Map<String, dynamic>> selectedOptions;
 
   CartItem({
+    this.backendId,
     required this.product,
     required this.quantity,
     this.selectedUnit = 'package',
+    this.selectedVariant,
+    this.selectedOptions = const [],
   });
 
   double get totalPrice {
-    final p = product['price'] ?? product['basePrice'];
-    double price = p is num ? p.toDouble() : (double.tryParse(p?.toString() ?? '0') ?? 0.0);
+    double price = 0.0;
+    
+    if (selectedVariant != null) {
+      final vPrice = selectedVariant!['basePrice'];
+      price = vPrice is num ? vPrice.toDouble() : (double.tryParse(vPrice?.toString() ?? '0') ?? 0.0);
+    } else {
+      final p = product['price'] ?? product['basePrice'];
+      price = p is num ? p.toDouble() : (double.tryParse(p?.toString() ?? '0') ?? 0.0);
+    }
     
     if (selectedUnit == 'strip' && product['sellByStrip'] == true) {
       final stripsCount = product['stripsPerPackage'] as int? ?? 1;
@@ -24,18 +38,30 @@ class CartItem {
       }
     }
     
+    for (final opt in selectedOptions) {
+      final optPrice = opt['priceAdded'];
+      final p = optPrice is num ? optPrice.toDouble() : (double.tryParse(optPrice?.toString() ?? '0') ?? 0.0);
+      price += p;
+    }
+    
     return price * quantity;
   }
 
   CartItem copyWith({
+    String? backendId,
     Map<String, dynamic>? product,
     int? quantity,
     String? selectedUnit,
+    Map<String, dynamic>? selectedVariant,
+    List<Map<String, dynamic>>? selectedOptions,
   }) {
     return CartItem(
+      backendId: backendId ?? this.backendId,
       product: product ?? this.product,
       quantity: quantity ?? this.quantity,
       selectedUnit: selectedUnit ?? this.selectedUnit,
+      selectedVariant: selectedVariant ?? this.selectedVariant,
+      selectedOptions: selectedOptions ?? this.selectedOptions,
     );
   }
 }
@@ -73,86 +99,153 @@ class CartState {
 class Cart extends _$Cart {
   @override
   CartState build() {
+    _loadCarts();
     return const CartState(vendorBaskets: {});
   }
 
-  void addItem(Map<String, dynamic> product, {String unit = 'package'}) {
+  Future<void> _loadCarts() async {
+    try {
+      final remote = ref.read(cartRemoteDataSourceProvider);
+      final carts = await remote.getMyCarts();
+      
+      final Map<String, List<CartItem>> baskets = {};
+      
+      for (final cartJson in carts) {
+        final vendorId = cartJson['vendorId'] as String;
+        final List<CartItem> items = [];
+        
+        for (final itemJson in cartJson['items']) {
+          items.add(CartItem(
+            backendId: itemJson['id'],
+            product: itemJson['product'],
+            quantity: itemJson['quantity'],
+            selectedUnit: 'package', 
+            selectedVariant: itemJson['variant'],
+            selectedOptions: List<Map<String, dynamic>>.from(itemJson['options']),
+          ));
+        }
+        baskets[vendorId] = items;
+      }
+      
+      state = CartState(vendorBaskets: baskets);
+    } catch (e) {
+      print('Error loading carts: $e');
+    }
+  }
+
+  Future<void> addItem(
+    Map<String, dynamic> product, {
+    String unit = 'package',
+    Map<String, dynamic>? variant,
+    List<Map<String, dynamic>> options = const [],
+  }) async {
     final vendorId = product['vendorId'] as String;
     
-    final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
-    final vendorItems = currentBaskets[vendorId] != null 
-        ? List<CartItem>.from(currentBaskets[vendorId]!) 
-        : <CartItem>[];
-    
-    final existingIndex = vendorItems.indexWhere((item) => 
-      item.product['id'] == product['id'] && item.selectedUnit == unit);
-
-    if (existingIndex >= 0) {
-      final existingItem = vendorItems[existingIndex];
-      vendorItems[existingIndex] = existingItem.copyWith(quantity: existingItem.quantity + 1);
-    } else {
-      vendorItems.add(CartItem(product: product, quantity: 1, selectedUnit: unit));
-    }
-    
-    currentBaskets[vendorId] = vendorItems;
-    state = CartState(vendorBaskets: currentBaskets);
-  }
-
-  void removeItem(String productId, {String? unit}) {
-    final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
-    String? targetVendorId;
-    
-    currentBaskets.forEach((vendorId, items) {
-      if (items.any((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit))) {
-        targetVendorId = vendorId;
-      }
-    });
-
-    if (targetVendorId != null) {
-      final vendorItems = List<CartItem>.from(currentBaskets[targetVendorId]!);
-      vendorItems.removeWhere((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit));
+    try {
+      final remote = ref.read(cartRemoteDataSourceProvider);
+      final response = await remote.addItem(
+        vendorId: vendorId,
+        productId: product['id'],
+        variantId: variant?['id'],
+        quantity: 1,
+        optionIds: options.map((o) => o['id'] as String).toList(),
+      );
       
-      if (vendorItems.isEmpty) {
-        currentBaskets.remove(targetVendorId);
-      } else {
-        currentBaskets[targetVendorId!] = vendorItems;
+      final updatedCart = response['data'];
+      final List<CartItem> items = [];
+      for (final itemJson in updatedCart['items']) {
+        items.add(CartItem(
+          backendId: itemJson['id'],
+          product: itemJson['product'],
+          quantity: itemJson['quantity'],
+          selectedUnit: unit, 
+          selectedVariant: itemJson['variant'],
+          selectedOptions: List<Map<String, dynamic>>.from(itemJson['options']),
+        ));
       }
       
+      final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
+      currentBaskets[vendorId] = items;
       state = CartState(vendorBaskets: currentBaskets);
+      
+    } catch (e) {
+      print('Error adding to cart: $e');
     }
   }
 
-  void updateQuantity(String productId, int newQuantity, {String? unit}) {
+  Future<void> updateQuantity(CartItem cartItem, int newQuantity) async {
     if (newQuantity <= 0) {
-      removeItem(productId, unit: unit);
+      await _removeItemExact(cartItem);
       return;
     }
 
-    final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
-    String? targetVendorId;
-    
-    currentBaskets.forEach((vendorId, items) {
-      if (items.any((item) => item.product['id'] == productId && (unit == null || item.selectedUnit == unit))) {
-        targetVendorId = vendorId;
-      }
-    });
+    final vendorId = cartItem.product['vendorId'] as String?;
+    if (vendorId == null || cartItem.backendId == null) return;
 
-    if (targetVendorId != null) {
-      final vendorItems = List<CartItem>.from(currentBaskets[targetVendorId]!);
-      final idx = vendorItems.indexWhere((i) => i.product['id'] == productId && (unit == null || i.selectedUnit == unit));
-      
-      if (idx >= 0) {
-        vendorItems[idx] = vendorItems[idx].copyWith(quantity: newQuantity);
-        currentBaskets[targetVendorId!] = vendorItems;
-        state = CartState(vendorBaskets: currentBaskets);
+    try {
+      final remote = ref.read(cartRemoteDataSourceProvider);
+      final response = await remote.updateItem(
+        vendorId: vendorId,
+        cartItemId: cartItem.backendId!,
+        quantity: newQuantity,
+      );
+
+      final updatedCart = response['data'];
+      final List<CartItem> items = [];
+      for (final itemJson in updatedCart['items']) {
+        items.add(CartItem(
+          backendId: itemJson['id'],
+          product: itemJson['product'],
+          quantity: itemJson['quantity'],
+          selectedUnit: cartItem.selectedUnit, 
+          selectedVariant: itemJson['variant'],
+          selectedOptions: List<Map<String, dynamic>>.from(itemJson['options']),
+        ));
       }
+
+      final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
+      currentBaskets[vendorId] = items;
+      state = CartState(vendorBaskets: currentBaskets);
+    } catch (e) {
+      print('Error updating quantity: $e');
     }
   }
 
-  void clearVendorCart(String vendorId) {
-    final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
-    currentBaskets.remove(vendorId);
-    state = CartState(vendorBaskets: currentBaskets);
+  Future<void> _removeItemExact(CartItem cartItem) async {
+    final vendorId = cartItem.product['vendorId'] as String?;
+    if (vendorId == null || cartItem.backendId == null) return;
+
+    try {
+      final remote = ref.read(cartRemoteDataSourceProvider);
+      await remote.removeItem(vendorId: vendorId, cartItemId: cartItem.backendId!);
+      
+      final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
+      final vendorItems = List<CartItem>.from(currentBaskets[vendorId]!);
+      vendorItems.remove(cartItem);
+      
+      if (vendorItems.isEmpty) {
+        currentBaskets.remove(vendorId);
+      } else {
+        currentBaskets[vendorId] = vendorItems;
+      }
+      
+      state = CartState(vendorBaskets: currentBaskets);
+    } catch (e) {
+      print('Error removing item: $e');
+    }
+  }
+
+  Future<void> clearVendorCart(String vendorId) async {
+    try {
+      final remote = ref.read(cartRemoteDataSourceProvider);
+      await remote.clearCart(vendorId);
+      
+      final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
+      currentBaskets.remove(vendorId);
+      state = CartState(vendorBaskets: currentBaskets);
+    } catch (e) {
+      print('Error clearing vendor cart: $e');
+    }
   }
 
   void clearCart() {

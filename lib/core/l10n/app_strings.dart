@@ -207,4 +207,7 @@ class AppStrings {
 
   String get rememberMe => isArabic ? 'تذكرني' : 'Remember Me';
   String get orLoginWithAnother => isArabic ? 'أو تسجيل الدخول بحساب آخر' : 'Or login with another account';
+  String get ticketExists => isArabic 
+      ? 'لديك تذكرة دعم مفتوحة بالفعل. يرجى حلها أولاً.' 
+      : 'You already have an open support ticket. Please resolve it first.';
 }

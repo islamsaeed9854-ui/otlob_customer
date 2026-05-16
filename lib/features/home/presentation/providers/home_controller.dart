@@ -60,7 +60,19 @@ class HomeController extends _$HomeController {
       categories.insert(0, {'id': 'all', 'name': 'All', 'nameAr': 'الكل', 'type': 'all'});
 
       // Map vendors
-      final vendors = vendorsData.map((v) => Map<String, dynamic>.from(v as Map)).toList();
+      final vendors = vendorsData.map((v) {
+        final Map<String, dynamic> vendor = Map<String, dynamic>.from(v as Map);
+        // Map backend fields to frontend expectations
+        vendor['name'] = vendor['storeName'];
+        vendor['nameAr'] = vendor['storeNameAr'];
+        vendor['image'] = vendor['coverImage'] ?? vendor['logo'];
+        vendor['logo'] = vendor['logo'];
+        vendor['coverImage'] = vendor['coverImage'];
+        vendor['vendor'] = vendor['description'];
+        vendor['vendorAr'] = vendor['descriptionAr'];
+        vendor['type'] = vendor['vertical']?['slug'] ?? 'other';
+        return vendor;
+      }).toList();
 
       // Map promotions
       List<dynamic> promotionsData = [];

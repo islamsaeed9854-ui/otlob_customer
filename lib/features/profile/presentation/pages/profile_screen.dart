@@ -83,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                         context: context,
                         icon: Icons.help_outline_rounded,
                         title: s.helpCenter,
-                        onTap: () => context.push('/chat/support/0'),
+                        onTap: () => context.push('/support-menu'),
                       ),
                       _buildNavTile(
                         context: context,

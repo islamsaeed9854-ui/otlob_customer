@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'home_controller.dart';
+part of 'support_ticket_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
@@ -9,43 +9,43 @@ part of 'home_controller.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(HomeController)
-final homeControllerProvider = HomeControllerProvider._();
+@ProviderFor(SupportTicket)
+final supportTicketProvider = SupportTicketProvider._();
 
-final class HomeControllerProvider
-    extends $AsyncNotifierProvider<HomeController, HomeData> {
-  HomeControllerProvider._()
+final class SupportTicketProvider
+    extends $AsyncNotifierProvider<SupportTicket, void> {
+  SupportTicketProvider._()
     : super(
         from: null,
         argument: null,
         retry: null,
-        name: r'homeControllerProvider',
+        name: r'supportTicketProvider',
         isAutoDispose: true,
         dependencies: null,
         $allTransitiveDependencies: null,
       );
 
   @override
-  String debugGetCreateSourceHash() => _$homeControllerHash();
+  String debugGetCreateSourceHash() => _$supportTicketHash();
 
   @$internal
   @override
-  HomeController create() => HomeController();
+  SupportTicket create() => SupportTicket();
 }
 
-String _$homeControllerHash() => r'8cb8d4b21e3a544f177d51c5ba144fcbf985220c';
+String _$supportTicketHash() => r'036b8559f033adabc3ff2970010be297c8920702';
 
-abstract class _$HomeController extends $AsyncNotifier<HomeData> {
-  FutureOr<HomeData> build();
+abstract class _$SupportTicket extends $AsyncNotifier<void> {
+  FutureOr<void> build();
   @$mustCallSuper
   @override
   void runBuild() {
-    final ref = this.ref as $Ref<AsyncValue<HomeData>, HomeData>;
+    final ref = this.ref as $Ref<AsyncValue<void>, void>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<HomeData>, HomeData>,
-              AsyncValue<HomeData>,
+              AnyNotifier<AsyncValue<void>, void>,
+              AsyncValue<void>,
               Object?,
               Object?
             >;

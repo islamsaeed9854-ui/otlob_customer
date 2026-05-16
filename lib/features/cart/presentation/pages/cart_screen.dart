@@ -269,7 +269,7 @@ class CartScreen extends ConsumerWidget {
               Positioned(
                 top: 0, right: 0,
                 child: GestureDetector(
-                  onTap: () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], 0, unit: item.selectedUnit),
+                  onTap: () => ref.read(cartProvider.notifier).updateQuantity(item, 0),
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
@@ -299,6 +299,24 @@ class CartScreen extends ConsumerWidget {
                     decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
                     child: Text(s.strip, style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w900)),
                   ),
+                if (item.selectedVariant != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      s.isArabic ? (item.selectedVariant!['nameAr'] ?? item.selectedVariant!['name'] ?? '') : (item.selectedVariant!['name'] ?? ''),
+                      style: TextStyle(color: isDark ? Colors.white60 : Colors.grey.shade600, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                if (item.selectedOptions.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Text(
+                      item.selectedOptions.map((o) => s.isArabic ? (o['nameAr'] ?? o['name'] ?? '') : (o['name'] ?? '')).join(', '),
+                      style: TextStyle(color: isDark ? Colors.white38 : Colors.grey.shade500, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 const SizedBox(height: 8),
                 Text(
                   '${item.totalPrice.toStringAsFixed(0)} ${s.egp}', 
@@ -320,12 +338,12 @@ class CartScreen extends ConsumerWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min, 
               children: [
-                _qtyBtn(Icons.remove, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity - 1, unit: item.selectedUnit)),
+                _qtyBtn(Icons.remove, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item, item.quantity - 1)),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8), 
                   child: Text('${item.quantity}', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: isDark ? Colors.white : Colors.black87))
                 ),
-                _qtyBtn(Icons.add, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item.product['id'], item.quantity + 1, unit: item.selectedUnit)),
+                _qtyBtn(Icons.add, isDark, () => ref.read(cartProvider.notifier).updateQuantity(item, item.quantity + 1)),
               ]
             ),
           ),

@@ -13,7 +13,7 @@ class OrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = AppStrings.of(context);
-    final orders = ref.watch(ordersProvider);
+    final ordersAsync = ref.watch(ordersProvider);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -22,20 +22,24 @@ class OrdersScreen extends ConsumerWidget {
       ),
       body: Stack(
         children: [
-          orders.isEmpty
-              ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
-                  const SizedBox(height: 16),
-                  Text(s.noResults, style: TextStyle(fontSize: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
-                ]))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return _buildOrderCard(context, order, s);
-                  },
-                ),
+          ordersAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            error: (err, stack) => Center(child: Text(err.toString())),
+            data: (orders) => orders.isEmpty
+                ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey.shade300),
+                    const SizedBox(height: 16),
+                    Text(s.noResults, style: TextStyle(fontSize: 18, color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey)),
+                  ]))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: orders.length,
+                    itemBuilder: (context, index) {
+                      final order = orders[index];
+                      return _buildOrderCard(context, order, s);
+                    },
+                  ),
+          ),
           const FloatingCartOverlay(),
         ],
       ),

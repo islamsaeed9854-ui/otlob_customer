@@ -49,7 +49,7 @@ final class ChatProvider extends $AsyncNotifierProvider<Chat, List<Message>> {
   }
 }
 
-String _$chatHash() => r'0f00b551b6e94ca4ebc8d517158e8bcb2f6bba0a';
+String _$chatHash() => r'bf8ebb62681cdf30d808f3c850394f95b473df99';
 
 final class ChatFamily extends $Family
     with

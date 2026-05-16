@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../../core/widgets/custom_chat_icon.dart';
 import '../../../../core/utils/image_utils.dart';
+import '../widgets/product_bottom_sheet.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../../../cart/presentation/providers/cart_controller.dart';
@@ -365,7 +366,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
               duration: const Duration(milliseconds: 200),
               margin: const EdgeInsetsDirectional.only(end: 12),
               width: 85,
-              height: 110,
+              height: 115,
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
                 borderRadius: BorderRadius.circular(16),
@@ -624,7 +625,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _qtyControl(WidgetRef ref, Map<String, dynamic> item, int qty) {
+  Widget _qtyControl(WidgetRef ref, CartItem cartItem, int qty) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.primary, 
@@ -644,7 +645,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.remove_rounded, color: Colors.black, size: 18), 
-            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item['id'], qty - 1, unit: 'package')
+            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(cartItem, qty - 1)
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -654,7 +655,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
             constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
             padding: EdgeInsets.zero,
             icon: const Icon(Icons.add_rounded, color: Colors.black, size: 18), 
-            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item['id'], qty + 1, unit: 'package')
+            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(cartItem, qty + 1)
           ),
         ],
       ),
@@ -695,283 +696,14 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Consumer(
-              builder: (context, ref, child) {
-                final currentCartItem = ref.watch(cartProvider).allItems.where((ci) => 
-                  ci.product['id'] == item['id'] && ci.selectedUnit == _selectedUnit).firstOrNull;
-                final currentQty = currentCartItem?.quantity ?? 0;
-                
-                final bool supportsStrips = item['sellByStrip'] == true && item['stripsPerPackage'] != null;
-                final double basePrice = double.tryParse(item['price']?.toString() ?? item['basePrice']?.toString() ?? '0') ?? 0.0;
-                final int stripsCount = item['stripsPerPackage'] as int? ?? 1;
-                final double currentUnitPrice = _selectedUnit == 'strip' ? (basePrice / stripsCount) : basePrice;
-
-                return Container(
-                  height: MediaQuery.of(context).size.height * 0.75,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-                  ),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 12),
-                      Container(
-                        width: 40,
-                        height: 5,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: (item['image']?.toString().isEmpty ?? true)
-                                    ? Container(
-                                        width: double.infinity,
-                                        height: 250,
-                                        color: Colors.grey.shade100,
-                                        child: Icon(Icons.fastfood_rounded, size: 80, color: Colors.grey.shade300),
-                                      )
-                                    : Container(
-                                        width: double.infinity,
-                                        height: 250,
-                                        decoration: BoxDecoration(
-                                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: CachedNetworkImage(
-                                            imageUrl: ImageUtils.formatImageUrl(item['image'] as String?),
-                                            fit: BoxFit.contain,
-                                            errorWidget: (context, url, error) => Icon(Icons.fastfood, size: 40, color: isDark ? Colors.white24 : Colors.grey.shade300),
-                                          ),
-                                        ),
-                                      ),
-                                ),
-                              const SizedBox(height: 24),
-                              Builder(builder: (context) {
-                                final isAr = Localizations.localeOf(context).languageCode == 'ar';
-                                final name = isAr && item['nameAr'] != null && item['nameAr'].toString().isNotEmpty
-                                    ? item['nameAr'] as String
-                                    : item['name'] as String;
-                                final description = isAr && item['descriptionAr'] != null && item['descriptionAr'].toString().isNotEmpty
-                                    ? item['descriptionAr'] as String
-                                    : item['description'] as String? ?? '';
-
-                                return Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            name,
-                                            style: TextStyle(
-                                              fontSize: 24, 
-                                              fontWeight: FontWeight.w900, 
-                                              letterSpacing: -0.5,
-                                              color: isDark ? Colors.white : Colors.black,
-                                            ),
-                                          ),
-                                        ),
-                                        Text(
-                                          '${currentUnitPrice.toStringAsFixed(2)} ${s.egp}',
-                                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary),
-                                        ),
-                                      ],
-                                    ),
-                                    if (supportsStrips) ...[
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        s.sellingUnit,
-                                        style: TextStyle(
-                                          fontSize: 16, 
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark ? Colors.white : Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: _buildUnitOption(
-                                              label: s.package,
-                                              isSelected: _selectedUnit == 'package',
-                                              price: basePrice,
-                                              s: s,
-                                              onTap: () {
-                                                setSheetState(() => _selectedUnit = 'package');
-                                              },
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: _buildUnitOption(
-                                              label: s.strip,
-                                              isSelected: _selectedUnit == 'strip',
-                                              price: basePrice / stripsCount,
-                                              s: s,
-                                              onTap: () {
-                                                setSheetState(() => _selectedUnit = 'strip');
-                                              },
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      description,
-                                      style: TextStyle(
-                                        fontSize: 15, 
-                                        color: isDark ? Colors.white : Colors.grey.shade700, 
-                                        height: 1.6
-                                      ),
-                                    ),
-                                  ],
-                                );
-                              }),
-                              const SizedBox(height: 32),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          boxShadow: [
-                            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -5)),
-                          ],
-                        ),
-                        child: currentQty == 0
-                            ? ElevatedButton(
-                                onPressed: () {
-                                  ref.read(cartProvider.notifier).addItem({
-                                    ...item,
-                                    'vendorId': widget.restaurant['id'],
-                                    'vendorName': widget.restaurant['name'],
-                                  }, unit: _selectedUnit);
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.black,
-                                  minimumSize: const Size(double.infinity, 60),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                  elevation: 0,
-                                ),
-                                child: Text(s.addToCart, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              )
-                            : Row(
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      height: 60,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary.withOpacity(0.1),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.remove_circle_outline, color: AppColors.primary),
-                                            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item['id'], currentQty - 1, unit: _selectedUnit),
-                                          ),
-                                          Text(
-                                            '$currentQty',
-                                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.primary),
-                                          ),
-                                          IconButton(
-                                            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
-                                            onPressed: () => ref.read(cartProvider.notifier).updateQuantity(item['id'], currentQty + 1, unit: _selectedUnit),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.primary,
-                                        foregroundColor: Colors.white,
-                                        minimumSize: const Size(double.infinity, 60),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                        elevation: 0,
-                                      ),
-                                      child: Text(s.done, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+        return ProductBottomSheet(
+          item: item,
+          restaurant: widget.restaurant,
+          initialUnit: _selectedUnit,
+          s: s,
+          isDark: isDark,
         );
       },
-    );
-  }
-
-  Widget _buildUnitOption({
-    required String label,
-    required bool isSelected,
-    required double price,
-    required AppStrings s,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade300,
-            width: 1.5,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: isSelected 
-                    ? Colors.white 
-                    : (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${price.toStringAsFixed(2)} ${s.egp}',
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected 
-                    ? Colors.white.withOpacity(0.9) 
-                    : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

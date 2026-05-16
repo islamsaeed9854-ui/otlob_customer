@@ -13,7 +13,7 @@ part of 'orders_provider.dart';
 final ordersProvider = OrdersProvider._();
 
 final class OrdersProvider
-    extends $NotifierProvider<Orders, List<Map<String, dynamic>>> {
+    extends $AsyncNotifierProvider<Orders, List<Map<String, dynamic>>> {
   OrdersProvider._()
     : super(
         from: null,
@@ -31,34 +31,29 @@ final class OrdersProvider
   @$internal
   @override
   Orders create() => Orders();
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(List<Map<String, dynamic>> value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<List<Map<String, dynamic>>>(value),
-    );
-  }
 }
 
-String _$ordersHash() => r'10f2402707582cae2fea53ebcc8375b910a9b20c';
+String _$ordersHash() => r'0d38505f16b04116c2eeb0132d227f641507d981';
 
-abstract class _$Orders extends $Notifier<List<Map<String, dynamic>>> {
-  List<Map<String, dynamic>> build();
+abstract class _$Orders extends $AsyncNotifier<List<Map<String, dynamic>>> {
+  FutureOr<List<Map<String, dynamic>>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
         this.ref
-            as $Ref<List<Map<String, dynamic>>, List<Map<String, dynamic>>>;
+            as $Ref<
+              AsyncValue<List<Map<String, dynamic>>>,
+              List<Map<String, dynamic>>
+            >;
     final element =
         ref.element
             as $ClassProviderElement<
               AnyNotifier<
-                List<Map<String, dynamic>>,
+                AsyncValue<List<Map<String, dynamic>>>,
                 List<Map<String, dynamic>>
               >,
-              List<Map<String, dynamic>>,
+              AsyncValue<List<Map<String, dynamic>>>,
               Object?,
               Object?
             >;

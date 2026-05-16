@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
+import '../../../../core/widgets/location_picker_map.dart';
 import '../providers/profile_controller.dart';
 
 class AddressesScreen extends ConsumerWidget {
@@ -107,51 +108,82 @@ class AddressesScreen extends ConsumerWidget {
   void _showAddAddress(BuildContext context, WidgetRef ref) {
     final labelCtrl = TextEditingController();
     final addressCtrl = TextEditingController();
+    double? selectedLat;
+    double? selectedLng;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
-            const SizedBox(height: 24),
-            TextField(controller: labelCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).addressLabel, prefixIcon: const Icon(Icons.label))),
-            const SizedBox(height: 16),
-            TextField(controller: addressCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).fullAddress, prefixIcon: const Icon(Icons.location_on))),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  if (labelCtrl.text.isNotEmpty && addressCtrl.text.isNotEmpty) {
-                    try {
-                      await ref.read(profileProvider.notifier).addAddress({
-                        'label': labelCtrl.text.trim(),
-                        'address': addressCtrl.text.trim(),
-                        'lat': 24.7136, // Default coordinates for Ryiadh as placeholders
-                        'lng': 46.6753,
-                        'isDefault': false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Add New Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                const SizedBox(height: 24),
+                TextField(controller: labelCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).addressLabel, prefixIcon: const Icon(Icons.label))),
+                const SizedBox(height: 16),
+                TextField(controller: addressCtrl, decoration: InputDecoration(labelText: AppStrings.of(context).fullAddress, prefixIcon: const Icon(Icons.location_on))),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.map_outlined),
+                  title: Text(selectedLat != null ? 'Location Selected' : 'Pick Location on Map'),
+                  subtitle: selectedLat != null ? Text('$selectedLat, $selectedLng') : null,
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    // Navigate to map picker
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LocationPickerMap(),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        selectedLat = result.latitude;
+                        selectedLng = result.longitude;
                       });
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    } catch (e) {
-                      if (ctx.mounted) {
-                        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString())));
-                      }
                     }
-                  }
-                },
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: Text(AppStrings.of(context).addAddress),
-              ),
+                  },
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (labelCtrl.text.isNotEmpty && addressCtrl.text.isNotEmpty) {
+                        try {
+                          await ref.read(profileProvider.notifier).addAddress({
+                            'label': labelCtrl.text.trim(),
+                            'address': addressCtrl.text.trim(),
+                            'location': [
+                              selectedLat ?? 24.7136, // Default to Riyadh if none picked
+                              selectedLng ?? 46.6753,
+                            ],
+                            'isDefault': false,
+                          });
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        } catch (e) {
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString())));
+                          }
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    child: Text(AppStrings.of(context).addAddress),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
             ),
-            const SizedBox(height: 32),
-          ],
-        ),
+          );
+        }
       ),
     );
   }

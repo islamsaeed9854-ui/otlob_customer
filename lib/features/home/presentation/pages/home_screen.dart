@@ -1037,7 +1037,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final color = isSelected ? AppColors.primary : Colors.grey;
     return InkWell(
       onTap: () {
-        if (index == 1) context.push('/chat/support/0');
+        if (index == 1) context.push('/support-menu');
         if (index == 3) context.push('/orders');
         if (index == 4) context.push('/profile');
       },

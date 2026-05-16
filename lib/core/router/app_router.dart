@@ -23,6 +23,7 @@ import '../../features/profile/presentation/pages/notifications_screen.dart';
 import '../../features/profile/presentation/pages/addresses_screen.dart';
 import '../../features/home/presentation/pages/custom_delivery_screen.dart';
 import '../../features/chat/presentation/pages/chat_screen.dart';
+import '../../features/chat/presentation/pages/support_menu_screen.dart';
 import '../providers/app_settings_provider.dart';
 import 'route_paths.dart';
 import 'route_names.dart';
@@ -215,6 +216,11 @@ GoRouter appRouter(Ref ref) {
         path: '/addresses',
         name: 'addresses',
         builder: (context, state) => const AddressesScreen(),
+      ),
+      GoRoute(
+        path: '/support-menu',
+        name: 'support-menu',
+        builder: (context, state) => const SupportMenuScreen(),
       ),
     ],
   );
