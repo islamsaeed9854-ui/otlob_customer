@@ -26,19 +26,32 @@ class VendorDetailController extends _$VendorDetailController {
     data['vendorAr'] = data['descriptionAr'];
     data['type'] = data['vertical']?['slug'] ?? 'other';
 
-    // Flatten categories into products menu
+    // Flatten categories or use direct products/menu list
     final List<Map<String, dynamic>> menu = [];
-    final categories = data['categories'] as List<dynamic>? ?? [];
-    
-    for (final cat in categories) {
-      final products = cat['products'] as List<dynamic>? ?? [];
+    if (data['menu'] != null && (data['menu'] as List).isNotEmpty) {
+      for (final item in data['menu']) {
+        menu.add(Map<String, dynamic>.from(item as Map));
+      }
+    } else if (data['products'] != null && (data['products'] as List).isNotEmpty) {
+      final products = data['products'] as List<dynamic>;
       for (final prod in products) {
         final Map<String, dynamic> p = Map<String, dynamic>.from(prod as Map);
-        p['category'] = cat['id'];
+        p['category'] = p['categoryId'];
         p['image'] = p['imageUrl'];
-        // Price mapping
         p['price'] = p['basePrice'];
         menu.add(p);
+      }
+    } else {
+      final categories = data['categories'] as List<dynamic>? ?? [];
+      for (final cat in categories) {
+        final products = cat['products'] as List<dynamic>? ?? [];
+        for (final prod in products) {
+          final Map<String, dynamic> p = Map<String, dynamic>.from(prod as Map);
+          p['category'] = cat['id'];
+          p['image'] = p['imageUrl'];
+          p['price'] = p['basePrice'];
+          menu.add(p);
+        }
       }
     }
     data['menu'] = menu;

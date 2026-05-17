@@ -44,7 +44,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
 
     return detailAsync.when(
       data: (fullVendor) {
-        final isPharmacy = fullVendor['type'] == 'pharmacy';
+        final isPharmacy = fullVendor['type'] == 'pharmacy' || fullVendor['type'] == 'pharmacies' || fullVendor['type']?.toString().contains('pharmacy') == true;
         final allMenu = (fullVendor['menu'] as List<dynamic>?) ?? [];
 
         final initialProductId = widget.restaurant['productId'];
