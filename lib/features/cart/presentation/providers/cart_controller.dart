@@ -112,12 +112,26 @@ class Cart extends _$Cart {
       
       for (final cartJson in carts) {
         final vendorId = cartJson['vendorId'] as String;
+        final vendorJson = cartJson['vendor'] as Map<String, dynamic>?;
+        final vendorName = vendorJson?['storeName'];
+        final vendorNameAr = vendorJson?['storeNameAr'];
+        final vendorLogo = vendorJson?['logo'];
+        final vendorCoverImage = vendorJson?['coverImage'];
         final List<CartItem> items = [];
         
         for (final itemJson in cartJson['items']) {
           items.add(CartItem(
             backendId: itemJson['id'],
-            product: itemJson['product'],
+            product: {
+              ...itemJson['product'],
+              'vendorId': vendorId,
+              'vendorName': vendorName,
+              'vendorNameAr': vendorNameAr,
+              'vendorLogo': vendorLogo,
+              'vendorCoverImage': vendorCoverImage,
+              'commissionRate': vendorJson?['commissionRate'],
+              'isContracted': vendorJson?['isContracted'],
+            },
             quantity: itemJson['quantity'],
             selectedUnit: 'package', 
             selectedVariant: itemJson['variant'],
@@ -152,11 +166,25 @@ class Cart extends _$Cart {
       );
       
       final updatedCart = response['data'];
+      final vendorJson = updatedCart['vendor'] as Map<String, dynamic>?;
+      final vendorName = vendorJson?['storeName'];
+      final vendorNameAr = vendorJson?['storeNameAr'];
+      final vendorLogo = vendorJson?['logo'];
+      final vendorCoverImage = vendorJson?['coverImage'];
       final List<CartItem> items = [];
       for (final itemJson in updatedCart['items']) {
         items.add(CartItem(
           backendId: itemJson['id'],
-          product: itemJson['product'],
+          product: {
+            ...itemJson['product'],
+            'vendorId': vendorId,
+            'vendorName': vendorName,
+            'vendorNameAr': vendorNameAr,
+            'vendorLogo': vendorLogo,
+            'vendorCoverImage': vendorCoverImage,
+            'commissionRate': vendorJson?['commissionRate'],
+            'isContracted': vendorJson?['isContracted'],
+          },
           quantity: itemJson['quantity'],
           selectedUnit: unit, 
           selectedVariant: itemJson['variant'],
@@ -179,7 +207,15 @@ class Cart extends _$Cart {
       return;
     }
 
-    final vendorId = cartItem.product['vendorId'] as String?;
+    String? vendorId = cartItem.product['vendorId'] as String?;
+    if (vendorId == null) {
+      for (final entry in state.vendorBaskets.entries) {
+        if (entry.value.any((item) => item.backendId == cartItem.backendId || item.product['id'] == cartItem.product['id'])) {
+          vendorId = entry.key;
+          break;
+        }
+      }
+    }
     if (vendorId == null || cartItem.backendId == null) return;
 
     try {
@@ -191,11 +227,25 @@ class Cart extends _$Cart {
       );
 
       final updatedCart = response['data'];
+      final vendorJson = updatedCart['vendor'] as Map<String, dynamic>?;
+      final vendorName = vendorJson?['storeName'];
+      final vendorNameAr = vendorJson?['storeNameAr'];
+      final vendorLogo = vendorJson?['logo'];
+      final vendorCoverImage = vendorJson?['coverImage'];
       final List<CartItem> items = [];
       for (final itemJson in updatedCart['items']) {
         items.add(CartItem(
           backendId: itemJson['id'],
-          product: itemJson['product'],
+          product: {
+            ...itemJson['product'],
+            'vendorId': vendorId,
+            'vendorName': vendorName,
+            'vendorNameAr': vendorNameAr,
+            'vendorLogo': vendorLogo,
+            'vendorCoverImage': vendorCoverImage,
+            'commissionRate': vendorJson?['commissionRate'],
+            'isContracted': vendorJson?['isContracted'],
+          },
           quantity: itemJson['quantity'],
           selectedUnit: cartItem.selectedUnit, 
           selectedVariant: itemJson['variant'],
@@ -212,7 +262,15 @@ class Cart extends _$Cart {
   }
 
   Future<void> _removeItemExact(CartItem cartItem) async {
-    final vendorId = cartItem.product['vendorId'] as String?;
+    String? vendorId = cartItem.product['vendorId'] as String?;
+    if (vendorId == null) {
+      for (final entry in state.vendorBaskets.entries) {
+        if (entry.value.any((item) => item.backendId == cartItem.backendId || item.product['id'] == cartItem.product['id'])) {
+          vendorId = entry.key;
+          break;
+        }
+      }
+    }
     if (vendorId == null || cartItem.backendId == null) return;
 
     try {
@@ -221,7 +279,11 @@ class Cart extends _$Cart {
       
       final currentBaskets = Map<String, List<CartItem>>.from(state.vendorBaskets);
       final vendorItems = List<CartItem>.from(currentBaskets[vendorId]!);
-      vendorItems.remove(cartItem);
+      
+      vendorItems.removeWhere((item) => 
+        (item.backendId != null && item.backendId == cartItem.backendId) || 
+        (item.product['id'] == cartItem.product['id'] && 
+         item.selectedVariant?['id'] == cartItem.selectedVariant?['id']));
       
       if (vendorItems.isEmpty) {
         currentBaskets.remove(vendorId);
@@ -248,7 +310,16 @@ class Cart extends _$Cart {
     }
   }
 
-  void clearCart() {
+  Future<void> clearCart() async {
+    final vendorIds = state.vendorBaskets.keys.toList();
+    for (final vendorId in vendorIds) {
+      try {
+        final remote = ref.read(cartRemoteDataSourceProvider);
+        await remote.clearCart(vendorId);
+      } catch (e) {
+        print('Error clearing vendor cart $vendorId on remote: $e');
+      }
+    }
     state = const CartState(vendorBaskets: {});
   }
 }

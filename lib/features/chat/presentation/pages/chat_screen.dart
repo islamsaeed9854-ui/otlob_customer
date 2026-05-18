@@ -19,6 +19,8 @@ import '../../domain/entities/message.dart';
 import '../providers/chat_provider.dart';
 import '../widgets/order_offer_bottom_sheet.dart';
 import '../../../../core/widgets/floating_cart_overlay.dart';
+import '../../../profile/presentation/providers/profile_controller.dart';
+import '../../../../core/network/network_providers.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -491,13 +493,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            if (product['image'] != null && product['image'].toString().isNotEmpty)
+            if ((product['imageUrl'] ?? product['image']) != null && (product['imageUrl'] ?? product['image']).toString().isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: CachedNetworkImage(
-                    imageUrl: ImageUtils.formatImageUrl(product['image'] as String?),
+                    imageUrl: ImageUtils.formatImageUrl((product['imageUrl'] ?? product['image']) as String?),
                     width: double.infinity,
                     height: 120,
                     fit: BoxFit.cover,

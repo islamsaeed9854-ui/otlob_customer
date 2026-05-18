@@ -126,7 +126,16 @@ class CartScreen extends ConsumerWidget {
         : (firstProduct['vendorName'] ?? s.vendor);
     final subtotal = ref.read(cartProvider).getVendorSubtotal(vendorId);
     final delivery = subtotal > 200 ? 0.0 : 15.0;
-    final total = subtotal + delivery;
+    
+    // Calculate Service Fee dynamically for Non-Contracted stores
+    final isContracted = firstProduct['isContracted'] == true;
+    final rawRate = firstProduct['commissionRate'];
+    final commissionRate = rawRate is num
+        ? rawRate.toDouble()
+        : (rawRate is String ? (double.tryParse(rawRate) ?? 0.0) : 0.0);
+    final serviceFee = !isContracted ? (subtotal * (commissionRate / 100)) : 0.0;
+    
+    final total = subtotal + delivery + serviceFee;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -145,31 +154,69 @@ class CartScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Vendor Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
+          InkWell(
+            onTap: () => context.push('/vendor', extra: {
+              'id': vendorId,
+              'storeName': firstProduct['vendorName'],
+              'storeNameAr': firstProduct['vendorNameAr'],
+              'logo': firstProduct['vendorLogo'],
+              'coverImage': firstProduct['vendorCoverImage'],
+              'image': firstProduct['vendorCoverImage'],
+            }),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: (firstProduct['vendorLogo']?.toString().isEmpty ?? true)
+                        ? Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 20),
+                          )
+                        : CachedNetworkImage(
+                            imageUrl: ImageUtils.formatImageUrl(firstProduct['vendorLogo'] as String?),
+                            height: 40,
+                            width: 40,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 40, width: 40,
+                              color: isDark ? Colors.white12 : Colors.grey.shade100,
+                              child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 20),
+                            ),
+                          ),
                   ),
-                  child: const Icon(Icons.storefront_rounded, color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    vendorName, 
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900, 
-                      fontSize: 18,
-                      color: isDark ? Colors.white : Colors.black87
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      vendorName, 
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900, 
+                        fontSize: 18,
+                        color: isDark ? Colors.white : Colors.black87
+                      )
                     )
-                  )
-                ),
-                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: isDark ? Colors.white24 : Colors.black26),
-              ],
+                  ),
+                  Icon(
+                    s.isArabic ? Icons.arrow_back_ios_rounded : Icons.arrow_forward_ios_rounded, 
+                    size: 14, 
+                    color: isDark ? Colors.white24 : Colors.black26
+                  ),
+                ],
+              ),
             ),
           ),
           
@@ -197,6 +244,14 @@ class CartScreen extends ConsumerWidget {
                 _buildSummaryRow(s.subtotal, '${subtotal.toStringAsFixed(0)} ${s.egp}', isDark),
                 const SizedBox(height: 8),
                 _buildSummaryRow(s.deliveryFee, '${delivery.toStringAsFixed(0)} ${s.egp}', isDark, isDelivery: true),
+                if (serviceFee > 0) ...[
+                  const SizedBox(height: 8),
+                  _buildSummaryRow(
+                    s.isArabic ? 'رسوم الخدمة' : 'Service Fee',
+                    '${serviceFee.toStringAsFixed(0)} ${s.egp}',
+                    isDark,
+                  ),
+                ],
                 const Divider(height: 32),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -262,9 +317,9 @@ class CartScreen extends ConsumerWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: (item.product['image']?.toString().isEmpty ?? true)
+                child: ((item.product['imageUrl'] ?? item.product['image'])?.toString().isEmpty ?? true)
                     ? Container(height: 80, width: 80, color: isDark ? Colors.white12 : Colors.grey.shade100, child: const Icon(Icons.fastfood, color: Colors.grey))
-                    : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl(item.product['image'] as String?), height: 80, width: 80, fit: BoxFit.cover),
+                    : CachedNetworkImage(imageUrl: ImageUtils.formatImageUrl((item.product['imageUrl'] ?? item.product['image']) as String?), height: 80, width: 80, fit: BoxFit.cover),
               ),
               Positioned(
                 top: 0, right: 0,
@@ -373,9 +428,12 @@ class CartScreen extends ConsumerWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(s.cancel)),
           TextButton(
-            onPressed: () {
-              ref.read(cartProvider.notifier).clearCart();
-              Navigator.pop(context);
+            onPressed: () async {
+              // Show a simple loading indicator or just await the remote operation
+              await ref.read(cartProvider.notifier).clearCart();
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             }, 
             child: Text(s.yes, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))
           ),

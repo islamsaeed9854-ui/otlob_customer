@@ -78,4 +78,19 @@ class Orders extends _$Orders {
       state = AsyncData([newOrder, ...orders]);
     });
   }
+
+  Future<bool> cancelOrder(String orderId, String reason) async {
+    final repository = ref.read(ordersRepositoryProvider);
+    final result = await repository.cancelOrder(orderId, reason);
+    return result.fold(
+      (success) {
+        ref.invalidateSelf();
+        return true;
+      },
+      (failure) {
+        print('Cancel order error: ${failure.message}');
+        return false;
+      },
+    );
+  }
 }

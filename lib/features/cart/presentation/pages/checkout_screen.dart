@@ -19,7 +19,7 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
-  String _selectedPayment = 'cash';
+  String _selectedPayment = 'CASH_ON_DELIVERY';
   bool _isProcessing = false;
   Map<String, dynamic>? _selectedAddress;
 
@@ -32,14 +32,33 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     setState(() => _isProcessing = true);
 
-    final location = _selectedAddress!['location'] as List<dynamic>?;
-    final List<double> coords = location?.map((e) => (e as num).toDouble()).toList() ??
-        [24.7136, 46.6753];
+    final locationData = _selectedAddress!['location'];
+    List<double> coords = [];
+
+    if (locationData is List) {
+      coords = locationData.map((e) => (e as num).toDouble()).toList();
+    } else if (locationData is Map && locationData['coordinates'] is List) {
+      final coordinatesList = locationData['coordinates'] as List<dynamic>;
+      coords = coordinatesList.map((e) => (e as num).toDouble()).toList();
+    }
+
+    if (coords.length != 2) {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(s.isArabic
+                ? 'الرجاء اختيار عنوان يحتوي على موقع جغرافي صحيح'
+                : 'Please select an address with a valid map location')));
+      }
+      return;
+    }
 
     final success = await ref.read(ordersProvider.notifier).placeOrder(
           vendorId: widget.vendorId ?? '',
           items: vendorItems,
-          paymentMethod: _selectedPayment,
+          paymentMethod: _selectedPayment.startsWith('MOBILE_WALLET')
+              ? 'MOBILE_WALLET'
+              : 'CASH_ON_DELIVERY',
           address: _selectedAddress!['address'] ?? s.locationName,
           location: coords,
         );
@@ -87,7 +106,8 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             child: ElevatedButton(
               onPressed: () {
                 context.pop();
-                context.go('/orders');
+                context.go('/home');
+                context.push('/orders');
               },
               style:
                   ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
@@ -132,7 +152,17 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 
     // In a real app, delivery fee comes from backend based on location
     final deliveryFee = subtotal > 200 ? 0.0 : 15.0;
-    final total = subtotal + deliveryFee;
+
+    // Calculate Service Fee dynamically for Non-Contracted stores
+    final firstProduct = vendorItems.isNotEmpty ? vendorItems.first.product : null;
+    final isContracted = firstProduct != null && firstProduct['isContracted'] == true;
+    final rawRate = firstProduct != null ? firstProduct['commissionRate'] : null;
+    final commissionRate = rawRate is num
+        ? rawRate.toDouble()
+        : (rawRate is String ? (double.tryParse(rawRate) ?? 0.0) : 0.0);
+    final serviceFee = !isContracted ? (subtotal * (commissionRate / 100)) : 0.0;
+
+    final total = subtotal + deliveryFee + serviceFee;
 
     // Auto-select default address if not set
     if (_selectedAddress == null && profileState.addresses.isNotEmpty) {
@@ -171,11 +201,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           ? 'اضف عنواناً في الملف الشخصي'
                           : 'Add one in profile'),
                       trailing: TextButton(
-                        onPressed: () => context.push('/profile/addresses'),
+                        onPressed: () => context.push('/addresses'),
                         child: Text(s.isArabic ? 'إضافة' : 'Add'),
                       ),
                     )
-                  else
+                  else ...[
                     ...profileState.addresses.map((addr) => RadioListTile<Map<String, dynamic>>(
                           value: addr,
                           groupValue: _selectedAddress,
@@ -189,11 +219,28 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               style: const TextStyle(fontSize: 12)),
                           activeColor: AppColors.primary,
                         )),
+                    const Divider(height: 1, indent: 8, endIndent: 8),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Align(
+                        alignment: s.isArabic ? Alignment.centerRight : Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => context.push('/addresses'),
+                          icon: const Icon(Icons.add_location_alt_outlined, size: 18, color: AppColors.primary),
+                          label: Text(
+                            s.isArabic ? 'إضافة أو إدارة العناوين' : 'Add or Manage Addresses',
+                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ]),
                 const SizedBox(height: 16),
                 _sectionCard(s.paymentMethod, [
-                  _paymentOption(s.cash, Icons.money, 'cash'),
-                  _paymentOption(s.creditCard, Icons.credit_card, 'card'),
+                  _paymentOption(s.cashOnDelivery, Icons.delivery_dining_outlined, 'CASH_ON_DELIVERY'),
+                  _paymentOption(s.vodafoneCash, Icons.wallet_outlined, 'MOBILE_WALLET_VODAFONE'),
+                  _paymentOption(s.instapay, Icons.account_balance_outlined, 'MOBILE_WALLET_INSTAPAY'),
                 ]),
                 const SizedBox(height: 16),
                 _sectionCard(s.orderSummary, [
@@ -242,6 +289,10 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                       s.subtotal, '${subtotal.toStringAsFixed(0)} ${s.egp}'),
                   _priceRow(
                       s.deliveryFee, '${deliveryFee.toStringAsFixed(0)} ${s.egp}'),
+                  if (serviceFee > 0)
+                    _priceRow(
+                        s.isArabic ? 'رسوم الخدمة' : 'Service Fee',
+                        '${serviceFee.toStringAsFixed(0)} ${s.egp}'),
                   const SizedBox(height: 8),
                   Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,

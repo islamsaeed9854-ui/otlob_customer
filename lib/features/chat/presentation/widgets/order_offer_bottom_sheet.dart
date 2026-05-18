@@ -33,7 +33,7 @@ class OrderOfferBottomSheet extends ConsumerWidget {
         : product['description'] as String? ?? '';
     
     final price = product['price'];
-    final image = product['image'];
+    final image = product['imageUrl'] ?? product['image'];
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.75,

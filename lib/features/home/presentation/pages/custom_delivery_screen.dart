@@ -62,7 +62,8 @@ class _CustomDeliveryScreenState extends ConsumerState<CustomDeliveryScreen> {
           vehicleType: _selectedVehicle,
         );
 
-        context.go('/orders');
+        context.go('/home');
+        context.push('/orders');
       }
     }
   }

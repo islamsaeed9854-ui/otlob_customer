@@ -6,6 +6,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/network/network_providers.dart';
 import '../providers/support_ticket_provider.dart';
+import '../../../profile/presentation/providers/profile_controller.dart';
+import '../providers/chat_provider.dart';
 
 class SupportMenuScreen extends ConsumerStatefulWidget {
   const SupportMenuScreen({super.key});
@@ -37,10 +39,10 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
       'الطلب اتسلم لحد تاني',
       'شكوى على الكابتن',
     ],
-    'مشكلة في المطعم/الأكل': [
+    'مشكلة في متجر / محتويات الطلب': [
       'الطلب ناقص أو غلط',
-      'جودة الأكل سيئة',
-      'المطعم قافل وهو ظاهر مفتوح',
+      'جودة المنتجات سيئة',
+      'المتجر مغلق وهو ظاهر مفتوح',
       'السعر غلط',
     ],
     'مشكلة في الدفع': [
@@ -58,7 +60,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
 
   final Map<String, String> _categoryEnMapping = {
     'مشكلة في التوصيل':         'Delivery Issue',
-    'مشكلة في المطعم/الأكل':    'Vendor/Food Issue',
+    'مشكلة في متجر / محتويات الطلب':    'Vendor/Order Contents Issue',
     'مشكلة في الدفع':           'Payment Issue',
     'مشكلة في الحساب والتطبيق': 'Account/App Issue',
     'طلب استرجاع/شكوى عامة':    'Return/Complaint',
@@ -72,8 +74,8 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
     'الطلب اتسلم لحد تاني':      'Order delivered to wrong person',
     'شكوى على الكابتن':          'Courier complaint',
     'الطلب ناقص أو غلط':        'Missing or wrong items',
-    'جودة الأكل سيئة':          'Poor food quality',
-    'المطعم قافل وهو ظاهر مفتوح': 'Restaurant closed but showing open',
+    'جودة المنتجات سيئة':          'Poor product quality',
+    'المتجر مغلق وهو ظاهر مفتوح': 'Store closed but showing open',
     'السعر غلط':                 'Wrong price',
     'دفع InstaPay':              'InstaPay Payment',
     'دفع فودافون كاش':           'Vodafone Cash Payment',
@@ -84,7 +86,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
   // Categories that require an order to be selected
   final Set<String> _orderRequiredCategories = {
     'مشكلة في التوصيل',
-    'مشكلة في المطعم/الأكل',
+    'مشكلة في متجر / محتويات الطلب',
     'طلب استرجاع/شكوى عامة',
   };
 
@@ -122,7 +124,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
     setState(() => _loadingOrders = true);
     try {
       final dio = ref.read(dioProvider);
-      final response = await dio.get('/orders/customer/me');
+      final response = await dio.get('/orders/my');
       final raw = response.data['data'];
       final list = (raw is Map ? raw['orders'] : raw) as List? ?? [];
       setState(() {
@@ -203,7 +205,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
     String categoryEnum;
     switch (categoryAr) {
       case 'مشكلة في التوصيل':          categoryEnum = 'DELIVERY'; break;
-      case 'مشكلة في المطعم/الأكل':     categoryEnum = 'VENDOR';   break;
+      case 'مشكلة في متجر / محتويات الطلب':     categoryEnum = 'VENDOR';   break;
       case 'مشكلة في الدفع':            categoryEnum = 'PAYMENT';  break;
       case 'مشكلة في الحساب والتطبيق':  categoryEnum = 'ACCOUNT';  break;
       case 'طلب استرجاع/شكوى عامة':     categoryEnum = 'VENDOR';   break;
@@ -250,6 +252,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
         orderId: orderId,
         vendorId: vendorId,
       );
+
 
       if (mounted) {
         Navigator.pop(context);
@@ -737,7 +740,7 @@ class _SupportMenuScreenState extends ConsumerState<SupportMenuScreen> {
   IconData _getCategoryIcon(String categoryAr) {
     switch (categoryAr) {
       case 'مشكلة في التوصيل':          return LucideIcons.truck;
-      case 'مشكلة في المطعم/الأكل':     return LucideIcons.utensils;
+      case 'مشكلة في متجر / محتويات الطلب':     return LucideIcons.store;
       case 'مشكلة في الدفع':            return LucideIcons.creditCard;
       case 'مشكلة في الحساب والتطبيق':  return LucideIcons.user;
       case 'طلب استرجاع/شكوى عامة':     return LucideIcons.messageSquare;

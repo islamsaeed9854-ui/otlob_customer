@@ -109,14 +109,19 @@ class Chat extends _$Chat {
   void _onSocketMessage(dynamic data) {
     print('📥 Customer Socket Message Received: $data');
     if (data['conversationId'] == _conversationId) {
+      final content = data['text'] ?? '';
+      bool isMe = data['senderId']?.toString() == _currentUserId?.toString();
+      String senderName = data['senderName'] ?? 'Support';
+      String? senderRole = data['senderRole'];
+
       final newMessage = Message(
         id: data['messageId'],
-        content: data['text'] ?? '',
+        content: content,
         type: _mapMessageType(data['type']),
-        isMe: data['senderId']?.toString() == _currentUserId?.toString(),
+        isMe: isMe,
         timestamp: DateTime.parse(data['createdAt']),
-        senderName: data['senderName'] ?? 'Support', 
-        senderRole: data['senderRole'],
+        senderName: senderName, 
+        senderRole: senderRole,
         mediaUrl: _getFullUrl(data['mediaUrl']),
         metadata: data['metadata'],
       );
@@ -161,17 +166,26 @@ class Chat extends _$Chat {
       final response = await dio.get('/chat/conversations/$_conversationId/messages');
       final List<dynamic> data = response.data['data']['messages'];
       
-      final ordered = data.map((m) => Message(
-        id: m['id'],
-        content: m['text'] ?? '',
-        type: _mapMessageType(m['type']),
-        isMe: m['sender']['id'] == _currentUserId, 
-        timestamp: DateTime.parse(m['createdAt']),
-        senderName: m['sender']['name'],
-        senderRole: m['sender']['role'],
-        mediaUrl: _getFullUrl(m['mediaUrl']),
-        metadata: m['metadata'],
-      )).toList();
+      final ordered = data.map((m) {
+        final content = m['text'] ?? '';
+        final senderId = m['sender']['id'];
+        
+        bool isMe = senderId == _currentUserId;
+        String senderName = m['sender']['name'];
+        String? senderRole = m['sender']['role'];
+
+        return Message(
+          id: m['id'],
+          content: content,
+          type: _mapMessageType(m['type']),
+          isMe: isMe, 
+          timestamp: DateTime.parse(m['createdAt']),
+          senderName: senderName,
+          senderRole: senderRole,
+          mediaUrl: _getFullUrl(m['mediaUrl']),
+          metadata: m['metadata'],
+        );
+      }).toList();
       
       return ordered.reversed.toList(); // Newest first for reversed list
     } catch (e) {

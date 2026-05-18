@@ -163,6 +163,25 @@ class Profile extends _$Profile {
     }
   }
 
+  Future<void> editAddress(String id, Map<String, dynamic> addressData) async {
+    try {
+      final repository = ref.read(profileRepositoryProvider);
+      final result = await repository.updateAddress(id, addressData);
+      
+      result.fold(
+        (updatedAddress) {
+          state = state.copyWith(
+            addresses: state.addresses.map((a) => a['id'] == id ? updatedAddress : a).toList(),
+          );
+        },
+        (failure) => throw Exception(failure.message),
+      );
+    } catch (e) {
+      print('Edit Address Error: $e');
+      rethrow;
+    }
+  }
+
   Future<void> removeAddress(String id) async {
     final repository = ref.read(profileRepositoryProvider);
     final result = await repository.deleteAddress(id);

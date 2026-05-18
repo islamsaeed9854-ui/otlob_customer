@@ -89,6 +89,10 @@ class AddressesScreen extends ConsumerWidget {
             ),
           ),
           IconButton(
+            icon: const Icon(Icons.edit_outlined, color: Colors.blueAccent),
+            onPressed: () => _showEditAddress(context, ref, address),
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
             onPressed: () async {
               try {
@@ -101,6 +105,103 @@ class AddressesScreen extends ConsumerWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditAddress(BuildContext context, WidgetRef ref, Map<String, dynamic> address) {
+    final labelCtrl = TextEditingController(text: address['label']);
+    final addressCtrl = TextEditingController(text: address['address']);
+    
+    double? selectedLat;
+    double? selectedLng;
+    
+    final locationData = address['location'];
+    if (locationData is List && locationData.length == 2) {
+      selectedLng = (locationData[0] as num).toDouble();
+      selectedLat = (locationData[1] as num).toDouble();
+    } else if (locationData is Map && locationData['coordinates'] is List) {
+      final coords = locationData['coordinates'] as List;
+      if (coords.length == 2) {
+        selectedLng = (coords[0] as num).toDouble();
+        selectedLat = (coords[1] as num).toDouble();
+      }
+    }
+
+    final s = AppStrings.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(s.isArabic ? 'تعديل العنوان' : 'Edit Address', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black87)),
+                const SizedBox(height: 24),
+                TextField(controller: labelCtrl, decoration: InputDecoration(labelText: s.addressLabel, prefixIcon: const Icon(Icons.label))),
+                const SizedBox(height: 16),
+                TextField(controller: addressCtrl, decoration: InputDecoration(labelText: s.fullAddress, prefixIcon: const Icon(Icons.location_on))),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.map_outlined),
+                  title: Text(selectedLat != null ? (s.isArabic ? 'تم تحديد الموقع الجغرافي' : 'Location Selected') : (s.isArabic ? 'تحديد الموقع على الخريطة' : 'Pick Location on Map')),
+                  subtitle: selectedLat != null ? Text('$selectedLat, $selectedLng') : null,
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LocationPickerMap(),
+                      ),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        selectedLat = result.latitude;
+                        selectedLng = result.longitude;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (labelCtrl.text.isNotEmpty && addressCtrl.text.isNotEmpty) {
+                        try {
+                          await ref.read(profileProvider.notifier).editAddress(address['id'], {
+                            'label': labelCtrl.text.trim(),
+                            'address': addressCtrl.text.trim(),
+                            'location': [
+                              selectedLng ?? 46.6753,
+                              selectedLat ?? 24.7136,
+                            ],
+                            'isDefault': address['isDefault'] ?? false,
+                          });
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        } catch (e) {
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString())));
+                          }
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                    child: Text(s.isArabic ? 'حفظ التعديلات' : 'Save Changes'),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          );
+        }
       ),
     );
   }
@@ -162,8 +263,8 @@ class AddressesScreen extends ConsumerWidget {
                             'label': labelCtrl.text.trim(),
                             'address': addressCtrl.text.trim(),
                             'location': [
-                              selectedLat ?? 24.7136, // Default to Riyadh if none picked
-                              selectedLng ?? 46.6753,
+                              selectedLng ?? 46.6753, // Default to Riyadh Lng if none picked
+                              selectedLat ?? 24.7136, // Default to Riyadh Lat if none picked
                             ],
                             'isDefault': false,
                           });

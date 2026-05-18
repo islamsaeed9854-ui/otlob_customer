@@ -67,9 +67,9 @@ class AppStrings {
   String get checkoutTitle => isArabic ? 'إتمام الشراء' : 'Checkout';
   String get deliveryAddress => isArabic ? 'عنوان التوصيل' : 'Delivery Address';
   String get paymentMethod => isArabic ? 'طريقة الدفع' : 'Payment Method';
-  String get cash => isArabic ? 'نقداً' : 'Cash';
-  String get creditCard => isArabic ? 'بطاقة ائتمان' : 'Credit Card';
   String get instapay => isArabic ? 'إنستا باي' : 'Instapay';
+  String get vodafoneCash => isArabic ? 'فودافون كاش' : 'Vodafone Cash';
+  String get cashOnDelivery => isArabic ? 'الدفع عند الاستلام' : 'Cash on delivery';
   String get orderSuccess => isArabic ? 'تم تأكيد طلبك!' : 'Order Confirmed!';
   String get orderSuccessSub => isArabic ? 'طلبك قيد التحضير وسنوافيك بالتحديثات قريباً' : 'Your order is being prepared. We will update you shortly.';
   String get goToOrders => isArabic ? 'الذهاب لطلباتي' : 'Go to My Orders';

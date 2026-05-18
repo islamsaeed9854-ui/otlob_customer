@@ -25,6 +25,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
   String _searchQuery = '';
   String _selectedUnit = 'package';
   bool _initialProductShown = false;
+  bool _isScheduleExpanded = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -46,6 +47,8 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
       data: (fullVendor) {
         final isPharmacy = fullVendor['type'] == 'pharmacy' || fullVendor['type'] == 'pharmacies' || fullVendor['type']?.toString().contains('pharmacy') == true;
         final allMenu = (fullVendor['menu'] as List<dynamic>?) ?? [];
+        final workingHours = (fullVendor['workingHours'] as List<dynamic>?) ?? [];
+        final isOpen = _isCurrentlyOpen(workingHours);
 
         final initialProductId = widget.restaurant['productId'];
         if (!_initialProductShown && initialProductId != null && allMenu.isNotEmpty) {
@@ -53,7 +56,9 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           if (item != null) {
             _initialProductShown = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _showProductBottomSheet(context, ref, item as Map<String, dynamic>, ref.read(cartProvider), s, isDark);
+              if (isOpen) {
+                _showProductBottomSheet(context, ref, item as Map<String, dynamic>, ref.read(cartProvider), s, isDark);
+              }
             });
           }
         }
@@ -98,14 +103,17 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          (fullVendor['image']?.toString().isEmpty ?? true)
-                              ? Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey))
-                              : CachedNetworkImage(
-                                  imageUrl: ImageUtils.formatImageUrl(fullVendor['image'] as String?),
-                                  fit: BoxFit.cover,
-                                  placeholder: (c, u) => Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200),
-                                  errorWidget: (c, u, e) => Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey)),
-                                ),
+                          (() {
+                            final coverUrl = fullVendor['coverImage'] ?? fullVendor['image'];
+                            return (coverUrl == null || coverUrl.toString().isEmpty)
+                                ? Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey))
+                                : CachedNetworkImage(
+                                    imageUrl: ImageUtils.formatImageUrl(coverUrl as String?),
+                                    fit: BoxFit.cover,
+                                    placeholder: (c, u) => Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200),
+                                    errorWidget: (c, u, e) => Container(color: isDark ? const Color(0xFF252525) : Colors.grey.shade200, child: const Icon(Icons.restaurant, size: 48, color: Colors.grey)),
+                                  );
+                          }()),
                           // Dynamic gradient for better text/icon visibility
                           DecoratedBox(
                             decoration: BoxDecoration(
@@ -170,6 +178,11 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                               height: 1.4,
                               letterSpacing: 0.1,
                             ),
+                          ),
+                          _buildWorkingHoursWidget(
+                            (fullVendor['workingHours'] as List<dynamic>?) ?? [],
+                            isAr,
+                            isDark,
                           ),
                           const SizedBox(height: 16),
                           const SizedBox(height: 12),
@@ -301,7 +314,7 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s, isDark),
+                          (context, index) => _buildMenuItem(context, ref, filteredMenu[index] as Map<String, dynamic>, cartState, s, isDark, isOpen),
                           childCount: filteredMenu.length,
                         ),
                       ),
@@ -490,12 +503,26 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
     );
   }
 
-  Widget _buildMenuItem(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s, bool isDark) {
+  Widget _buildMenuItem(BuildContext context, WidgetRef ref, Map<String, dynamic> item, CartState cartState, AppStrings s, bool isDark, bool isOpen) {
     final cartItem = cartState.allItems.where((ci) => ci.product['id'] == item['id']).firstOrNull;
     final qty = cartItem?.quantity ?? 0;
 
     return GestureDetector(
       onTap: () {
+        if (!isOpen) {
+          final isAr = Localizations.localeOf(context).languageCode == 'ar';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                isAr 
+                    ? 'هذا المتجر مغلق حالياً ولا يستقبل طلبات!' 
+                    : 'This store is currently closed and is not accepting orders!',
+              ),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          return;
+        }
         setState(() => _selectedUnit = 'package'); 
         _showProductBottomSheet(context, ref, item, cartState, s, isDark);
       },
@@ -582,11 +609,11 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(14),
-                child: (item['image']?.toString().isEmpty ?? true)
+                child: ((item['imageUrl'] ?? item['image'])?.toString().isEmpty ?? true)
                     ? Icon(Icons.fastfood, color: Colors.grey.shade400, size: 36)
                     : CachedNetworkImage(
-                        imageUrl: ImageUtils.formatImageUrl(item['image'] as String?),
-                        fit: BoxFit.contain,
+                        imageUrl: ImageUtils.formatImageUrl((item['imageUrl'] ?? item['image']) as String?),
+                        fit: BoxFit.cover,
                         width: 110,
                         height: 110,
                       ),
@@ -704,6 +731,223 @@ class _VendorDetailScreenState extends ConsumerState<VendorDetailScreen> {
           isDark: isDark,
         );
       },
+    );
+  }
+
+  bool _isCurrentlyOpen(List<dynamic> workingHours) {
+    if (workingHours.isEmpty) return true;
+    final now = DateTime.now();
+    final todayDay = now.weekday % 7;
+    final todaySchedule = workingHours.where((h) => int.tryParse(h['day'].toString()) == todayDay).firstOrNull;
+    if (todaySchedule == null) return true;
+    
+    final isClosed = todaySchedule['isClosed'] == true || todaySchedule['isClosed'] == 'true';
+    if (isClosed) return false;
+    
+    final openTimeStr = todaySchedule['openTime'] as String? ?? '09:00';
+    final closeTimeStr = todaySchedule['closeTime'] as String? ?? '22:00';
+    
+    try {
+      final openParts = openTimeStr.split(':');
+      final closeParts = closeTimeStr.split(':');
+      
+      final openHour = int.parse(openParts[0]);
+      final openMin = int.parse(openParts[1]);
+      
+      final closeHour = int.parse(closeParts[0]);
+      final closeMin = int.parse(closeParts[1]);
+      
+      final currentHour = now.hour;
+      final currentMin = now.minute;
+      
+      final openMinutes = openHour * 60 + openMin;
+      final closeMinutes = closeHour * 60 + closeMin;
+      final currentMinutes = currentHour * 60 + currentMin;
+      
+      if (closeMinutes < openMinutes) {
+        return currentMinutes >= openMinutes || currentMinutes <= closeMinutes;
+      }
+      return currentMinutes >= openMinutes && currentMinutes <= closeMinutes;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  Widget _buildWorkingHoursWidget(List<dynamic> workingHours, bool isAr, bool isDark) {
+    if (workingHours.isEmpty) return const SizedBox.shrink();
+    
+    final now = DateTime.now();
+    final todayDay = now.weekday % 7;
+    final isOpen = _isCurrentlyOpen(workingHours);
+    
+    String getDayName(int day) {
+      switch (day) {
+        case 0: return isAr ? 'الأحد' : 'Sunday';
+        case 1: return isAr ? 'الإثنين' : 'Monday';
+        case 2: return isAr ? 'الثلاثاء' : 'Tuesday';
+        case 3: return isAr ? 'الأربعاء' : 'Wednesday';
+        case 4: return isAr ? 'الخميس' : 'Thursday';
+        case 5: return isAr ? 'الجمعة' : 'Friday';
+        case 6: return isAr ? 'السبت' : 'Saturday';
+        default: return '';
+      }
+    }
+
+    String _formatTimeTo12Hour(String timeStr, bool isArabic) {
+      try {
+        final parts = timeStr.split(':');
+        if (parts.length < 2) return timeStr;
+        final hour = int.tryParse(parts[0]) ?? 0;
+        final min = int.tryParse(parts[1]) ?? 0;
+        
+        final period = hour >= 12 ? (isArabic ? 'م' : 'PM') : (isArabic ? 'ص' : 'AM');
+        var displayHour = hour % 12;
+        if (displayHour == 0) displayHour = 12;
+        
+        final minStr = min.toString().padLeft(2, '0');
+        final hourStr = displayHour.toString().padLeft(2, '0');
+        
+        return '$hourStr:$minStr $period';
+      } catch (e) {
+        return timeStr;
+      }
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200,
+        ),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _isScheduleExpanded = !_isScheduleExpanded),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    LucideIcons.calendarClock,
+                    color: isOpen ? AppColors.primary : Colors.redAccent,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isAr ? 'ساعات العمل الأسبوعية' : 'Weekly Working Hours',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: isOpen ? Colors.green : Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isOpen 
+                                  ? (isAr ? 'مفتوح الآن للطلبات' : 'Open Now for Orders')
+                                  : (isAr ? 'مغلق الآن - لا يستقبل طلبات' : 'Closed Now - No Orders'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isOpen ? Colors.green : Colors.redAccent,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    _isScheduleExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown,
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isScheduleExpanded) ...[
+            const Divider(height: 1, thickness: 1, color: Colors.black12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Column(
+                children: List.generate(workingHours.length, (index) {
+                  final item = workingHours[index];
+                  final day = int.tryParse(item['day'].toString()) ?? 0;
+                  final isClosed = item['isClosed'] as bool? ?? false;
+                  final openTime = item['openTime'] as String? ?? '09:00';
+                  final closeTime = item['closeTime'] as String? ?? '22:00';
+                  final isToday = day == todayDay;
+                  
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          getDayName(day),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                            color: isToday 
+                                ? AppColors.primary 
+                                : (isDark ? Colors.white70 : Colors.black87),
+                          ),
+                        ),
+                        isClosed
+                            ? Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  isAr ? 'إجازة' : 'Closed',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                '${_formatTimeTo12Hour(openTime, isAr)} - ${_formatTimeTo12Hour(closeTime, isAr)}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                                  color: isToday 
+                                      ? AppColors.primary 
+                                      : (isDark ? Colors.white70 : Colors.black87),
+                                ),
+                              ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

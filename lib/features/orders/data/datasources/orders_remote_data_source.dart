@@ -40,7 +40,7 @@ class OrdersRemoteDataSource {
   }
 
   Future<List<dynamic>> getMyOrders() async {
-    final response = await dio.get('/orders/customer/me');
+    final response = await dio.get('/orders/my');
     return response.data['data']['orders'];
   }
 
